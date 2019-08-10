@@ -4,10 +4,6 @@ import android.os.Bundle;
 
 import com.OCR.go4lunch_ep.R;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
-import com.google.android.material.snackbar.Snackbar;
-
-import android.view.View;
 
 import androidx.annotation.NonNull;
 import androidx.core.view.GravityCompat;
@@ -25,11 +21,28 @@ import androidx.appcompat.widget.Toolbar;
 import android.view.Menu;
 import android.widget.TextView;
 
+import butterknife.BindView;
+import butterknife.ButterKnife;
+
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
 
-    TextView mTextMessage;
-    BottomNavigationView bottomNavigationView;
+    @BindView(R.id.textView2)
+            private TextView mTextMessage;
+
+    @BindView(R.id.tv_menu_mail)
+            private TextView mtv_Menu_Mail;
+    @BindView(R.id.tv_menu_name)
+            private TextView mtv_Menu_Name;
+    @BindView(R.id.toolbar)
+            private Toolbar toolbar;
+    @BindView(R.id.drawer_layout)
+            private DrawerLayout drawer;
+    @BindView(R.id.nav_view)
+            private NavigationView navigationView;
+
+    @BindView(R.id.bottom_nav_view)
+            private BottomNavigationView bottomNavigationView;
 
     private BottomNavigationView.OnNavigationItemSelectedListener mOnNavigationItemSelectedListener
             = new BottomNavigationView.OnNavigationItemSelectedListener() {
@@ -37,14 +50,14 @@ public class MainActivity extends AppCompatActivity
         @Override
         public boolean onNavigationItemSelected(@NonNull MenuItem item) {
             switch (item.getItemId()) {
-                case R.id.navigation_home:
-                    mTextMessage.setText(R.string.title_home);
+                case R.id.navigation_map:
+                    mTextMessage.setText(R.string.title_map_view);
                     return true;
-                case R.id.navigation_dashboard:
-                    mTextMessage.setText(R.string.title_dashboard);
+                case R.id.navigation_list_view:
+                    mTextMessage.setText(R.string.title_list_view);
                     return true;
-                case R.id.navigation_notifications:
-                    mTextMessage.setText(R.string.title_notifications);
+                case R.id.navigation_workmates:
+                    mTextMessage.setText(R.string.title_workmates);
                     return true;
             }
             return false;
@@ -55,13 +68,13 @@ public class MainActivity extends AppCompatActivity
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        mTextMessage = findViewById(R.id.textView2);
-        bottomNavigationView = findViewById(R.id.bottom_nav_view);
+        ButterKnife.bind(this);
+        setupUi();
+    }
+
+    private void setupUi (){
         bottomNavigationView.setOnNavigationItemSelectedListener(mOnNavigationItemSelectedListener);
-        Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-        DrawerLayout drawer = findViewById(R.id.drawer_layout);
-        NavigationView navigationView = findViewById(R.id.nav_view);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
                 this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
         drawer.addDrawerListener(toggle);
@@ -107,17 +120,11 @@ public class MainActivity extends AppCompatActivity
         // Handle navigation view item clicks here.
         int id = item.getItemId();
 
-        if (id == R.id.nav_home) {
-            // Handle the camera action
-        } else if (id == R.id.nav_gallery) {
+        if (id == R.id.nav_your_lunch) {
+            //TODO implement fragment map
+        } else if (id == R.id.nav_setting) {
 
-        } else if (id == R.id.nav_slideshow) {
-
-        } else if (id == R.id.nav_tools) {
-
-        } else if (id == R.id.nav_share) {
-
-        } else if (id == R.id.nav_send) {
+        } else if (id == R.id.nav_logout) {
 
         }
 

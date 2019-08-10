@@ -7,6 +7,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
+import com.OCR.go4lunch_ep.R;
 import com.OCR.go4lunch_ep.ui.fragments.places.PlacesFragment.OnListFragmentInteractionListener;
 import com.OCR.go4lunch_ep.ui.fragments.places.dummy.DummyContent.DummyItem;
 
