@@ -1,8 +1,8 @@
-package com.OCR.go4lunch_ep.ui;
+package com.EtiennePriou.go4launch.ui;
 
 import android.os.Bundle;
 
-import com.OCR.go4lunch_ep.R;
+import com.EtiennePriou.go4launch.R;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 import androidx.annotation.NonNull;
@@ -12,37 +12,26 @@ import androidx.appcompat.app.ActionBarDrawerToggle;
 import android.view.MenuItem;
 
 import com.google.android.material.navigation.NavigationView;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 
 import androidx.drawerlayout.widget.DrawerLayout;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
-import android.view.Menu;
+import android.view.View;
+import android.widget.ImageView;
 import android.widget.TextView;
 
-import butterknife.BindView;
-import butterknife.ButterKnife;
 
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
 
-    @BindView(R.id.textView2)
-            private TextView mTextMessage;
-
-    @BindView(R.id.tv_menu_mail)
-            private TextView mtv_Menu_Mail;
-    @BindView(R.id.tv_menu_name)
-            private TextView mtv_Menu_Name;
-    @BindView(R.id.toolbar)
-            private Toolbar toolbar;
-    @BindView(R.id.drawer_layout)
-            private DrawerLayout drawer;
-    @BindView(R.id.nav_view)
-            private NavigationView navigationView;
-
-    @BindView(R.id.bottom_nav_view)
-            private BottomNavigationView bottomNavigationView;
+    private TextView mTextMessage;
+    private TextView mtv_Menu_Mail;
+    private TextView mtv_Menu_Name;
+    private ImageView imgMenuProfile;
 
     private BottomNavigationView.OnNavigationItemSelectedListener mOnNavigationItemSelectedListener
             = new BottomNavigationView.OnNavigationItemSelectedListener() {
@@ -68,18 +57,41 @@ public class MainActivity extends AppCompatActivity
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        ButterKnife.bind(this);
         setupUi();
+
+        FirebaseAuth auth = FirebaseAuth.getInstance();
+        FirebaseUser currentUser = auth.getCurrentUser();
+        if (currentUser != null)setupMenuInfo(currentUser);
+
+
     }
 
     private void setupUi (){
-        bottomNavigationView.setOnNavigationItemSelectedListener(mOnNavigationItemSelectedListener);
+
+        mTextMessage = findViewById(R.id.textView2);
+
+        NavigationView navigationView = findViewById(R.id.nav_view);
+        DrawerLayout drawer = findViewById(R.id.drawer_layout);
+        Toolbar toolbar = findViewById(R.id.toolbar);
+        BottomNavigationView bottomNavigationView = findViewById(R.id.bottom_nav_view);
+
+        View headerView = navigationView.getHeaderView(0);
+        imgMenuProfile = headerView.findViewById(R.id.img_menu_profile);
+        mtv_Menu_Mail = headerView.findViewById(R.id.tv_menu_mail);
+        mtv_Menu_Name = headerView.findViewById(R.id.tv_menu_name);
+
         setSupportActionBar(toolbar);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
                 this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
         drawer.addDrawerListener(toggle);
         toggle.syncState();
+        bottomNavigationView.setOnNavigationItemSelectedListener(mOnNavigationItemSelectedListener);
         navigationView.setNavigationItemSelectedListener(this);
+    }
+    private void setupMenuInfo(FirebaseUser user){
+        mtv_Menu_Mail.setText(user.getEmail());
+        mtv_Menu_Name.setText(user.getDisplayName());
+        imgMenuProfile.setImageURI(user.getPhotoUrl());
     }
 
     @Override
@@ -92,31 +104,9 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.main, menu);
-        return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
-        }
-
-        return super.onOptionsItemSelected(item);
-    }
-
     @SuppressWarnings("StatementWithEmptyBody")
     @Override
-    public boolean onNavigationItemSelected(MenuItem item) {
+    public boolean onNavigationItemSelected(@NonNull MenuItem item) {
         // Handle navigation view item clicks here.
         int id = item.getItemId();
 
@@ -125,7 +115,8 @@ public class MainActivity extends AppCompatActivity
         } else if (id == R.id.nav_setting) {
 
         } else if (id == R.id.nav_logout) {
-
+            FirebaseAuth.getInstance().signOut();
+            this.finish();
         }
 
         DrawerLayout drawer = findViewById(R.id.drawer_layout);

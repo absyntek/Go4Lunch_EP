@@ -4,8 +4,8 @@ android {
     compileSdkVersion 29
     buildToolsVersion "29.0.0"
     defaultConfig {
-        applicationId "com.OCR.go4lunch_ep"
-        minSdkVersion 21
+        applicationId "com.EtiennePriou.go4launch"
+        minSdkVersion 19
         targetSdkVersion 29
         versionCode 1
         versionName "1.0"
@@ -30,10 +30,11 @@ dependencies {
     androidTestImplementation 'androidx.test:runner:1.2.0'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
 
-    implementation'com.jakewharton:butterknife:10.1.0'
-
+    implementation 'com.google.firebase:firebase-analytics:17.0.1'
+    implementation 'com.google.firebase:firebase-firestore:20.2.0'
     implementation 'com.google.firebase:firebase-core:17.0.1'
-    apply plugin: 'com.google.gms.google-services'
-
-    implementation 'com.facebook.android:facebook-android-sdk:4.42.0'
+    implementation 'com.google.firebase:firebase-auth:18.1.0'
+    implementation 'com.google.android.gms:play-services-auth:17.0.0'
+    implementation 'com.firebaseui:firebase-ui-auth:4.3.2'
 }
+apply plugin: 'com.google.gms.google-services'

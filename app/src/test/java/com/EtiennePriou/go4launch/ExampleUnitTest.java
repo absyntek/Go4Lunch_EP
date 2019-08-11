@@ -1,4 +1,4 @@
-package com.OCR.go4lunch_ep;
+package com.EtiennePriou.go4launch;
 
 import org.junit.Test;
 
