@@ -65,7 +65,6 @@ public class ConnectionActivity extends AppCompatActivity {
         // Check if user is signed in (non-null) and update UI accordingly.
         FirebaseUser currentUser = mAuth.getCurrentUser();
         if (currentUser != null){
-            //makeToast(currentUser.getDisplayName());
             getApplicationContext().startActivity(intent);
         }
     }
@@ -82,18 +81,9 @@ public class ConnectionActivity extends AppCompatActivity {
         mGoogleSignInClient = GoogleSignIn.getClient(this, gso);
 
         mAuth = FirebaseAuth.getInstance();
-
-        // Check for existing Google Sign In account, if the user is already signed in
-        // the GoogleSignInAccount will be non-null.
-//        GoogleSignInAccount account = GoogleSignIn.getLastSignedInAccount(this);
-//        if (account != null){
-//            FirebaseAuth.getInstance().signOut();
-//            Toast.makeText(this, account.getDisplayName(), Toast.LENGTH_SHORT).show();
-//        }
     }
 
     private void signIn() {
-        mAuth.signOut();
         Intent signInIntent = mGoogleSignInClient.getSignInIntent();
         startActivityForResult(signInIntent, RC_SIGN_IN);
     }

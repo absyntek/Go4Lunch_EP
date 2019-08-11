@@ -3,6 +3,8 @@ package com.EtiennePriou.go4launch.ui;
 import android.os.Bundle;
 
 import com.EtiennePriou.go4launch.R;
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.request.RequestOptions;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 import androidx.annotation.NonNull;
@@ -91,7 +93,10 @@ public class MainActivity extends AppCompatActivity
     private void setupMenuInfo(FirebaseUser user){
         mtv_Menu_Mail.setText(user.getEmail());
         mtv_Menu_Name.setText(user.getDisplayName());
-        imgMenuProfile.setImageURI(user.getPhotoUrl());
+        Glide.with(imgMenuProfile.getContext())
+                .load(user.getPhotoUrl())
+                .apply(RequestOptions.circleCropTransform())
+                .into(imgMenuProfile);
     }
 
     @Override
