@@ -1,9 +1,12 @@
 package com.EtiennePriou.go4launch;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -31,6 +34,7 @@ public class ConnectionActivity extends AppCompatActivity {
     private Intent intent;
     private FirebaseAuth mAuth;
     private GoogleSignInClient mGoogleSignInClient;
+    private AlertDialog alertDialog;
 
     SignInButton signInButton;
 
@@ -91,6 +95,8 @@ public class ConnectionActivity extends AppCompatActivity {
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
+        
+        showMessage();
 
         // Result returned from launching the Intent from GoogleSignInApi.getSignInIntent(...);
         if (requestCode == RC_SIGN_IN) {
@@ -118,6 +124,7 @@ public class ConnectionActivity extends AppCompatActivity {
                         if (task.isSuccessful()) {
                             // Sign in success, update UI with the signed-in user's information
                             Log.d(TAG, "signInWithCredential:success");
+                            alertDialog.dismiss();
                             getApplicationContext().startActivity(intent);
                         } else {
                             // If sign in fails, display a message to the user.
@@ -125,5 +132,12 @@ public class ConnectionActivity extends AppCompatActivity {
                         }
                     }
                 });
+    }
+    private void showMessage () {
+        AlertDialog.Builder alertDialogBuilder;
+        alertDialogBuilder = new AlertDialog.Builder(this);
+        alertDialogBuilder.setView(R.layout.dialog_wait);
+        alertDialog = alertDialogBuilder.create();
+        alertDialog.show();
     }
 }
