@@ -20,11 +20,14 @@ import com.google.android.gms.common.SignInButton;
 import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
+import com.google.android.libraries.places.api.Places;
 import com.google.firebase.auth.AuthCredential;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.GoogleAuthProvider;
+
+import static com.firebase.ui.auth.AuthUI.getApplicationContext;
 
 public class ConnectionActivity extends AppCompatActivity {
 
@@ -83,6 +86,7 @@ public class ConnectionActivity extends AppCompatActivity {
 
         // Build a GoogleSignInClient with the options specified by gso.
         mGoogleSignInClient = GoogleSignIn.getClient(this, gso);
+        Places.initialize(getApplicationContext(), getString(R.string.google_maps_key));
 
         mAuth = FirebaseAuth.getInstance();
     }
@@ -95,7 +99,7 @@ public class ConnectionActivity extends AppCompatActivity {
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        
+
         showMessage();
 
         // Result returned from launching the Intent from GoogleSignInApi.getSignInIntent(...);

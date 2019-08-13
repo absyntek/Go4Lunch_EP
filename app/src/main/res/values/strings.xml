@@ -24,5 +24,6 @@
     <string name="background_main">Background_main</string>
     <string name="iconapp">iconapp</string>
     <string name="connecting">Connecting</string>
+    <string name="title_activity_maps">Map</string>
 
 </resources>

@@ -3,6 +3,8 @@ package com.EtiennePriou.go4launch.ui;
 import android.os.Bundle;
 
 import com.EtiennePriou.go4launch.R;
+import com.EtiennePriou.go4launch.di.DI;
+import com.EtiennePriou.go4launch.services.PlacesApiService;
 import com.EtiennePriou.go4launch.ui.fragments.MapFragment;
 import com.EtiennePriou.go4launch.ui.fragments.place_view.PlaceFragment;
 import com.EtiennePriou.go4launch.ui.fragments.workmates_list.WorkmateFragment;
@@ -43,16 +45,18 @@ public class MainActivity extends AppCompatActivity
     private FrameLayout mFrameLayout;
     BottomNavigationView bottomNavigationView;
 
+    private PlacesApiService mPlacesApiService;
+
     private BottomNavigationView.OnNavigationItemSelectedListener mOnNavigationItemSelectedListener
             = new BottomNavigationView.OnNavigationItemSelectedListener() {
         @Override
         public boolean onNavigationItemSelected(@NonNull MenuItem item) {
             switch (item.getItemId()) {
                 case R.id.navigation_map:
-                    showFragment(new MapFragment());
+                    showFragment(MapFragment.newInstance());
                     return true;
                 case R.id.navigation_list_view:
-                    showFragment(new PlaceFragment());
+                    showFragment(PlaceFragment.newInstance(mPlacesApiService.getNearbyPlacesList()));
                     return true;
                 case R.id.navigation_workmates:
                     showFragment(new WorkmateFragment());
@@ -65,12 +69,15 @@ public class MainActivity extends AppCompatActivity
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         setContentView(R.layout.activity_main);
+        mPlacesApiService = DI.getServiceApiPlaces();
         setupUi();
 
         FirebaseAuth auth = FirebaseAuth.getInstance();
         FirebaseUser currentUser = auth.getCurrentUser();
         if (currentUser != null)setupMenuInfo(currentUser);
+        showFragment(MapFragment.newInstance());
 
     }
 
