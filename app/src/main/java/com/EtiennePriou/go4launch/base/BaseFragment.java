@@ -1,4 +1,4 @@
-package com.EtiennePriou.go4launch.ui.fragments;
+package com.EtiennePriou.go4launch.base;
 
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -13,7 +13,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.EtiennePriou.go4launch.di.DI;
-import com.EtiennePriou.go4launch.services.PlacesApiService;
+import com.EtiennePriou.go4launch.services.places.PlacesApiService;
 
 public abstract class BaseFragment extends Fragment {
 

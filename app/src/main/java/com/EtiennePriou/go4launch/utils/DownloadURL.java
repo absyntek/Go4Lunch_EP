@@ -50,8 +50,10 @@ public class DownloadURL {
             e.printStackTrace();
         }
         finally {
-            inputStream.close();
-            urlConnection.disconnect();
+            if (inputStream != null){
+                inputStream.close();
+                urlConnection.disconnect();
+            }
         }
         Log.d("DownloadURL","Returning data= "+data);
 

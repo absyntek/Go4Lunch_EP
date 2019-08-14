@@ -1,10 +1,7 @@
 package com.EtiennePriou.go4launch.ui;
 
-import android.os.Bundle;
-
 import com.EtiennePriou.go4launch.R;
-import com.EtiennePriou.go4launch.di.DI;
-import com.EtiennePriou.go4launch.services.PlacesApiService;
+import com.EtiennePriou.go4launch.base.BaseActivity;
 import com.EtiennePriou.go4launch.ui.fragments.MapFragment;
 import com.EtiennePriou.go4launch.ui.fragments.place_view.PlaceFragment;
 import com.EtiennePriou.go4launch.ui.fragments.workmates_list.WorkmateFragment;
@@ -24,11 +21,9 @@ import com.google.firebase.auth.FirebaseUser;
 
 import androidx.drawerlayout.widget.DrawerLayout;
 
-import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
-import androidx.viewpager.widget.ViewPager;
 
 import android.view.View;
 import android.widget.FrameLayout;
@@ -36,7 +31,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 
-public class MainActivity extends AppCompatActivity
+public class MainActivity extends BaseActivity
         implements NavigationView.OnNavigationItemSelectedListener {
 
     private TextView mtv_Menu_Mail;
@@ -44,8 +39,6 @@ public class MainActivity extends AppCompatActivity
     private ImageView imgMenuProfile;
     private FrameLayout mFrameLayout;
     BottomNavigationView bottomNavigationView;
-
-    private PlacesApiService mPlacesApiService;
 
     private BottomNavigationView.OnNavigationItemSelectedListener mOnNavigationItemSelectedListener
             = new BottomNavigationView.OnNavigationItemSelectedListener() {
@@ -67,21 +60,12 @@ public class MainActivity extends AppCompatActivity
     };
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-
-        setContentView(R.layout.activity_main);
-        mPlacesApiService = DI.getServiceApiPlaces();
-        setupUi();
-
-        FirebaseAuth auth = FirebaseAuth.getInstance();
-        FirebaseUser currentUser = auth.getCurrentUser();
-        if (currentUser != null)setupMenuInfo(currentUser);
-        showFragment(MapFragment.newInstance());
-
+    public int getLayoutContentViewID() {
+        return R.layout.activity_main;
     }
 
-    private void setupUi (){
+    @Override
+    protected void setupUi(){
 
         NavigationView navigationView = findViewById(R.id.nav_view);
         DrawerLayout drawer = findViewById(R.id.drawer_layout);
@@ -102,6 +86,15 @@ public class MainActivity extends AppCompatActivity
         bottomNavigationView.setOnNavigationItemSelectedListener(mOnNavigationItemSelectedListener);
         navigationView.setNavigationItemSelectedListener(this);
     }
+
+    @Override
+    protected void withOnCreate() {
+        FirebaseAuth auth = FirebaseAuth.getInstance();
+        FirebaseUser currentUser = auth.getCurrentUser();
+        if (currentUser != null)setupMenuInfo(currentUser);
+        showFragment(MapFragment.newInstance());
+    }
+
     private void setupMenuInfo(FirebaseUser user){
         mtv_Menu_Mail.setText(user.getEmail());
         mtv_Menu_Name.setText(user.getDisplayName());

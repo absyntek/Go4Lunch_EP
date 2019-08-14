@@ -1,21 +1,17 @@
-package com.EtiennePriou.go4launch.services;
+package com.EtiennePriou.go4launch.services.places;
 
-import android.util.Log;
-
+import com.EtiennePriou.go4launch.models.Place;
 import com.EtiennePriou.go4launch.utils.GetNearbyPlacesData;
 import com.google.android.gms.maps.GoogleMap;
 
-import java.util.HashMap;
 import java.util.List;
 
 public class DummyPlacesApiService implements PlacesApiService {
 
     private Integer proximity_radius = 10000;
-    private List<HashMap<String, String>> mNearbyPlaceList;
-    private String urlNearbyPlace;
-    private GoogleMap mMap;
-    private Object dataTransfer[];
-    GetNearbyPlacesData getNearbyPlacesData;
+    private List<Place> mNearbyPlaceList = null;
+    private String urlNearbyPlace, urlPlaceDetails;
+    GetNearbyPlacesData mGetNearbyPlacesData;
 
 
     @Override
@@ -31,29 +27,22 @@ public class DummyPlacesApiService implements PlacesApiService {
     @Override
     public void setListPlaces(double latitude, double longitude, GoogleMap map) {
         setUrlNearbyPlace(latitude,longitude);
-        setMap(map);
-        dataTransfer = new Object[2];
-        dataTransfer[0] = this.mMap;
-        dataTransfer[1] = this.urlNearbyPlace;
-        getNearbyPlacesData = new GetNearbyPlacesData();
-        getNearbyPlacesData.execute(dataTransfer);
+        mGetNearbyPlacesData = new GetNearbyPlacesData();
+        mGetNearbyPlacesData.execute(this.urlNearbyPlace);
     }
 
     @Override
-    public List<HashMap<String, String>> getNearbyPlacesList() {
+    public List<Place> getNearbyPlacesList() {
         return this.mNearbyPlaceList;
     }
 
     @Override
-    public void setNearbyPlaceList(List<HashMap<String, String>> nearbyPlaceList) {
+    public void setNearbyPlaceList(List<Place> nearbyPlaceList) {
         this.mNearbyPlaceList=nearbyPlaceList;
     }
 
-    private void setMap(GoogleMap map) {
-        mMap = map;
-    }
-
     private void setUrlNearbyPlace(double latitude , double longitude) {
+
         StringBuilder googlePlaceUrl = new StringBuilder("https://maps.googleapis.com/maps/api/place/nearbysearch/json?");
         googlePlaceUrl.append("location="+latitude+","+longitude);
         googlePlaceUrl.append("&radius="+ proximity_radius);
@@ -61,7 +50,14 @@ public class DummyPlacesApiService implements PlacesApiService {
         googlePlaceUrl.append("&sensor=true");
         googlePlaceUrl.append("&key=AIzaSyD5hmxXOnLbZOEwlAuJ5Y8pQHxhPYQ8AvM"); //TODO Check this
 
-        Log.d("MapsActivity", "url = "+googlePlaceUrl.toString());
         this.urlNearbyPlace = googlePlaceUrl.toString();
+    }
+
+    private void setUrlPlaceDetails(String placeId){
+        StringBuilder placeDetails = new StringBuilder("https://maps.googleapis.com/maps/api/place/details/json?");
+        placeDetails.append("placeid="+placeId);
+        placeDetails.append("&fields=formatted_phone_number,opening_hours,website");
+        placeDetails.append("&key=AIzaSyD5hmxXOnLbZOEwlAuJ5Y8pQHxhPYQ8AvM");
+        this.urlPlaceDetails = placeDetails.toString();
     }
 }

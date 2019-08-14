@@ -25,37 +25,40 @@ import android.widget.Toast;
 
 import com.EtiennePriou.go4launch.R;
 import com.EtiennePriou.go4launch.di.DI;
-import com.EtiennePriou.go4launch.services.PlacesApiService;
+import com.EtiennePriou.go4launch.events.ReceiveListePlace;
+import com.EtiennePriou.go4launch.models.Place;
+import com.EtiennePriou.go4launch.services.map.GoogleMapApiService;
+import com.EtiennePriou.go4launch.services.places.PlacesApiService;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapView;
 import com.google.android.gms.maps.MapsInitializer;
 import com.google.android.gms.maps.OnMapReadyCallback;
-import com.google.android.gms.maps.model.CameraPosition;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
-import com.google.android.libraries.places.api.Places;
-import com.google.android.libraries.places.api.net.PlacesClient;
+
+import org.greenrobot.eventbus.EventBus;
+import org.greenrobot.eventbus.Subscribe;
+
+import java.util.List;
+import java.util.Objects;
 
 import static android.content.Context.LOCATION_SERVICE;
 
 public class MapFragment extends Fragment implements OnMapReadyCallback, LocationListener {
 
-    public static final int REQUEST_ID_ACCESS_COURSE_FINE_LOCATION = 100;
-    int PROXIMITY_RADIUS = 10000;
+    private static final int REQUEST_ID_ACCESS_COURSE_FINE_LOCATION = 100;
     private static final String MYTAG = "Test";
     private GoogleMap mMap;
-    MapView mMapView;
-    View mView;
-    PlacesClient placesClient;
-    private static Context mContext;
+    private View mView;
+    private Context mContext;
     private ProgressDialog myProgress;
     private PlacesApiService mPlacesApiService;
+    private Location myLocation;
 
-    public MapFragment() {
-        // Required empty public constructor
-    }
+    public MapFragment() { }
 
     public static MapFragment newInstance() {
         MapFragment fragment = new MapFragment();
@@ -72,18 +75,15 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, Locatio
 
         // Create Progress Bar.
         myProgress = new ProgressDialog(mContext);
-        myProgress.setTitle("Map Loading ...");
+        myProgress.setTitle("Fetching nearby restaurants ...");
         myProgress.setMessage("Please wait...");
         myProgress.setCancelable(true);
         // Display Progress Bar.
         myProgress.show();
-        placesClient = Places.createClient(mContext);
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
-        // Inflate the layout for this fragment
+    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         mView = inflater.inflate(R.layout.fragment_map, container, false);
         return mView;
     }
@@ -92,11 +92,12 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, Locatio
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        mMapView = mView.findViewById(R.id.mapView);
-        if (mMapView != null) {
-            mMapView.onCreate(null);
-            mMapView.onResume();
-            mMapView.getMapAsync(this);
+
+        MapView mapView = mView.findViewById(R.id.mapView);
+        if (mapView != null) {
+            mapView.onCreate(null);
+            mapView.onResume();
+            mapView.getMapAsync(this);
         }
     }
 
@@ -106,7 +107,6 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, Locatio
         mMap = googleMap;
         googleMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
         requestPermissionLocation();
-        myProgress.dismiss();
         showMyLocation();
     }
 
@@ -117,7 +117,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, Locatio
             String[] permissions = new String[]{Manifest.permission.ACCESS_COARSE_LOCATION,
                     Manifest.permission.ACCESS_FINE_LOCATION};
             // Show a dialog asking the user to allow the above permissions.
-            ActivityCompat.requestPermissions(getActivity(), permissions, REQUEST_ID_ACCESS_COURSE_FINE_LOCATION);
+            ActivityCompat.requestPermissions(Objects.requireNonNull(getActivity()), permissions, REQUEST_ID_ACCESS_COURSE_FINE_LOCATION);
             return;
         }
         mMap.setMyLocationEnabled(true);
@@ -125,26 +125,19 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, Locatio
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == REQUEST_ID_ACCESS_COURSE_FINE_LOCATION) {
+            if (grantResults.length > 1
+                    && grantResults[0] == PackageManager.PERMISSION_GRANTED
+                    && grantResults[1] == PackageManager.PERMISSION_GRANTED) {
 
-        switch (requestCode) {
-            case REQUEST_ID_ACCESS_COURSE_FINE_LOCATION: {
+                Toast.makeText(getContext(), "Permission granted!", Toast.LENGTH_LONG).show();
 
-                // Note: If request is cancelled, the result arrays are empty.
-                // Permissions granted (read/write).
-                if (grantResults.length > 1
-                        && grantResults[0] == PackageManager.PERMISSION_GRANTED
-                        && grantResults[1] == PackageManager.PERMISSION_GRANTED) {
-
-                    Toast.makeText(getContext(), "Permission granted!", Toast.LENGTH_LONG).show();
-
-                    // Show current location on Map.
-                    this.showMyLocation();
-                }
-                // Cancelled or denied.
-                else {
-                    Toast.makeText(getContext(), "Permission denied!", Toast.LENGTH_LONG).show();
-                }
-                break;
+                // Show current location on Map.
+                this.showMyLocation();
+            }
+            // Cancelled or denied.
+            else {
+                Toast.makeText(getContext(), "Permission denied!", Toast.LENGTH_LONG).show();
             }
         }
     }
@@ -155,24 +148,19 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, Locatio
 
         String locationProvider = this.getEnabledLocationProvider();
 
-        if (locationProvider == null) {
-            return;
-        }
+        if (locationProvider == null) { return; }
 
         // Millisecond
         final long MIN_TIME_BW_UPDATES = 1000;
         // Met
         final float MIN_DISTANCE_CHANGE_FOR_UPDATES = 1;
-
-        Location myLocation = null;
         try {
-            // This code need permissions (Asked above ***)
+            assert locationManager != null;
             locationManager.requestLocationUpdates(locationProvider, MIN_TIME_BW_UPDATES, MIN_DISTANCE_CHANGE_FOR_UPDATES, this);
 
             // Getting Location.
             myLocation = locationManager.getLastKnownLocation(locationProvider);
         }
-        // With Android API >= 23, need to catch SecurityException.
         catch (SecurityException e) {
             Toast.makeText(mContext, "Show My Location Error: " + e.getMessage(), Toast.LENGTH_LONG).show();
             Log.e(MYTAG, "Show My Location Error:" + e.getMessage());
@@ -181,23 +169,9 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, Locatio
         }
 
         if (myLocation != null) {
-            Double latitude = myLocation.getLatitude();
-            Double longitude = myLocation.getLongitude();
+            double latitude = myLocation.getLatitude();
+            double longitude = myLocation.getLongitude();
             LatLng latLng = new LatLng(myLocation.getLatitude(), myLocation.getLongitude());
-
-            mPlacesApiService.setListPlaces(latitude,longitude, mMap);
-
-            mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 13));
-
-            CameraPosition cameraPosition = new CameraPosition.Builder()
-                    .target(latLng)             // Sets the center of the map to location user
-                    .zoom(15)                   // Sets the zoom
-                    .bearing(90)                // Sets the orientation of the camera to east
-                    .tilt(40)                   // Sets the tilt of the camera to 30 degrees
-                    .build();                   // Creates a CameraPosition from the builder
-            mMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
-
-
             // Add Marker to Map
             MarkerOptions option = new MarkerOptions();
             option.title("My Location");
@@ -205,12 +179,17 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, Locatio
             option.position(latLng);
             Marker currentMarker = mMap.addMarker(option);
             currentMarker.showInfoWindow();
+
+            if (mPlacesApiService.getNearbyPlacesList() == null){
+                mPlacesApiService.setListPlaces(latitude,longitude, mMap);
+            }else {
+                showNearbyPlaces(mPlacesApiService.getNearbyPlacesList());
+            }
+
         } else {
             Toast.makeText(mContext, "Location not found!", Toast.LENGTH_LONG).show();
             Log.i(MYTAG, "Location not found");
         }
-
-
     }
 
     // Find Location provider is openning.
@@ -235,6 +214,28 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, Locatio
         return bestProvider;
     }
 
+    private void showNearbyPlaces(List<Place> nearbyPlaceList) {
+
+        for (Place place : nearbyPlaceList) {
+            MarkerOptions markerOptions = new MarkerOptions();
+
+            String placeName = place.getName();
+            String vicinity = place.getAdresse();
+            double lat = Double.parseDouble( place.getLat() );
+            double lng = Double.parseDouble( place.getLongit() );
+
+            LatLng latLng = new LatLng( lat, lng);
+            markerOptions.position(latLng);
+            markerOptions.title(placeName + "\n"+ vicinity);
+            markerOptions.icon(BitmapDescriptorFactory.defaultMarker());
+
+            mMap.addMarker(markerOptions);
+            mMap.moveCamera(CameraUpdateFactory.newLatLng(latLng));
+            mMap.animateCamera(CameraUpdateFactory.zoomTo(10));
+        }
+        myProgress.dismiss();
+    }
+
     @Override
     public void onLocationChanged(Location location) {
 
@@ -253,5 +254,22 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, Locatio
     @Override
     public void onProviderDisabled(String s) {
 
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        EventBus.getDefault().register(this);
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        EventBus.getDefault().unregister(this);
+    }
+
+    @Subscribe
+    public void onReceiveList(ReceiveListePlace event){
+        showNearbyPlaces(event.nearbyPlaceList);
     }
 }

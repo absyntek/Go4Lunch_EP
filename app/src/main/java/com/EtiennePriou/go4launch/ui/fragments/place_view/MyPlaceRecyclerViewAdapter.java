@@ -1,24 +1,28 @@
 package com.EtiennePriou.go4launch.ui.fragments.place_view;
 
+import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.content.Context;
+import android.content.Intent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.EtiennePriou.go4launch.R;
+import com.EtiennePriou.go4launch.models.Place;
+import com.EtiennePriou.go4launch.ui.DetailPlaceActivity;
+import com.bumptech.glide.Glide;
 
-import java.util.HashMap;
 import java.util.List;
 
-/**
- * {@link RecyclerView.Adapter} that can display a {@link} and makes a call to the
- * TODO: Replace the implementation with code for your data type.
- */
 public class MyPlaceRecyclerViewAdapter extends RecyclerView.Adapter<MyPlaceRecyclerViewAdapter.ViewHolder> {
 
-    private final List mValues;
+    private final List<Place> mValues;
+    private Context mContext;
+    private static final String PLACEREFERENCE = "placeReference";
 
     public MyPlaceRecyclerViewAdapter(List items) {
         mValues = items;
@@ -33,9 +37,40 @@ public class MyPlaceRecyclerViewAdapter extends RecyclerView.Adapter<MyPlaceRecy
 
     @Override
     public void onBindViewHolder(final ViewHolder holder, int position) {
-        HashMap<String, String> googlePlace = (HashMap<String, String>) mValues.get(position);
-        holder.mIdView.setText(googlePlace.get("place_name"));
-        holder.mContentView.setText(googlePlace.get("vicinity"));
+        final Place place = mValues.get(position);
+        holder.mtvNamePlace.setText(place.getName());
+        holder.mtvAdresse.setText(place.getAdresse());
+
+        if (place.getImgReference() != null){
+            Glide.with(holder.imgPlaceListe.getContext())
+                    .load(place.getPhotoUri())
+                    .into(holder.imgPlaceListe);
+        }else {
+            holder.imgPlaceListe.setImageResource(R.drawable.notext_logo200x200);
+        }
+        if (place.isOpen() == null){
+            holder.mtvIsOpen.setTextColor(ContextCompat.getColor(mContext,R.color.quantum_black_text));
+            holder.mtvIsOpen.setText(R.string.UnknownTime);
+        }else{
+            boolean isOpen = Boolean.parseBoolean(place.isOpen());
+            if (isOpen){
+                holder.mtvIsOpen.setTextColor(ContextCompat.getColor(mContext,R.color.green));
+                holder.mtvIsOpen.setText(R.string.open);
+
+            }else {
+                holder.mtvIsOpen.setTextColor(ContextCompat.getColor(mContext,R.color.red));
+                holder.mtvIsOpen.setText(R.string.close);
+            }
+        }
+
+        holder.mView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent(view.getContext(), DetailPlaceActivity.class);
+                intent.putExtra(PLACEREFERENCE, place.getReference());
+                view.getContext().startActivity(intent);
+            }
+        });
     }
 
     @Override
@@ -44,20 +79,24 @@ public class MyPlaceRecyclerViewAdapter extends RecyclerView.Adapter<MyPlaceRecy
     }
 
     public class ViewHolder extends RecyclerView.ViewHolder {
-        public final View mView;
-        public final TextView mIdView;
-        public final TextView mContentView;
+        private final View mView;
+        private final TextView mtvNamePlace, mtvAdresse, mtvIsOpen;
+        private final ImageView imgPlaceListe;
 
-        public ViewHolder(View view) {
+
+        private ViewHolder(View view) {
             super(view);
             mView = view;
-            mIdView = view.findViewById(R.id.item_number);
-            mContentView = view.findViewById(R.id.content);
+            mtvNamePlace = view.findViewById(R.id.tvNamePlace);
+            mtvAdresse = view.findViewById(R.id.tvAdressePlace);
+            mtvIsOpen = mView.findViewById(R.id.tvIsOpen);
+            imgPlaceListe = mView.findViewById(R.id.imgPlace);
+            mContext = view.getContext();
         }
 
         @Override
         public String toString() {
-            return super.toString() + " '" + mContentView.getText() + "'";
+            return super.toString() + " '" + mtvAdresse.getText() + "'";
         }
     }
 }

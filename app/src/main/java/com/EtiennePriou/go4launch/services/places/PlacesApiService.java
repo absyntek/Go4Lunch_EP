@@ -1,8 +1,8 @@
-package com.EtiennePriou.go4launch.services;
+package com.EtiennePriou.go4launch.services.places;
 
+import com.EtiennePriou.go4launch.models.Place;
 import com.google.android.gms.maps.GoogleMap;
 
-import java.util.HashMap;
 import java.util.List;
 
 public interface PlacesApiService {
@@ -13,7 +13,7 @@ public interface PlacesApiService {
 
     void setListPlaces(double latitude, double longitude, GoogleMap map);
 
-    List<HashMap<String, String>> getNearbyPlacesList();
+    List<Place> getNearbyPlacesList();
 
-    void setNearbyPlaceList(List<HashMap<String, String>> nearbyPlaceList);
+    void setNearbyPlaceList(List<Place> nearbyPlaceList);
 }

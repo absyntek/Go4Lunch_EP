@@ -3,19 +3,19 @@ package com.EtiennePriou.go4launch.ui.fragments.place_view;
 import android.content.Context;
 
 import com.EtiennePriou.go4launch.R;
-import com.EtiennePriou.go4launch.ui.fragments.BaseFragment;
+import com.EtiennePriou.go4launch.models.Place;
+import com.EtiennePriou.go4launch.base.BaseFragment;
 
-import java.util.HashMap;
 import java.util.List;
 
 public class PlaceFragment extends BaseFragment {
 
-    private static List<HashMap<String, String>> mHashMaps;
+    private static List<Place> mHashMaps;
 
     public PlaceFragment() {
     }
 
-    public static PlaceFragment newInstance(List<HashMap<String, String>> hashMaps) {
+    public static PlaceFragment newInstance(List<Place> hashMaps) {
         mHashMaps = hashMaps;
         PlaceFragment fragment = new PlaceFragment();
         return fragment;
