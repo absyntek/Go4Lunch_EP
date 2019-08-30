@@ -1,80 +1,107 @@
 package com.EtiennePriou.go4launch.ui.fragments.workmates_list;
 
-import android.content.Context;
-import android.os.Bundle;
-
-import androidx.fragment.app.Fragment;
-import androidx.recyclerview.widget.GridLayoutManager;
-import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
+import android.widget.TextView;
 
 import com.EtiennePriou.go4launch.R;
-import com.EtiennePriou.go4launch.ui.fragments.workmates_list.dummy.DummyContent;
-import com.EtiennePriou.go4launch.ui.fragments.workmates_list.dummy.DummyContent.DummyItem;
+import com.EtiennePriou.go4launch.base.BaseFragment;
+import com.EtiennePriou.go4launch.models.Workmate;
+import com.bumptech.glide.Glide;
+import com.firebase.ui.database.FirebaseRecyclerAdapter;
+import com.firebase.ui.database.FirebaseRecyclerOptions;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.database.Query;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.QuerySnapshot;
 
-import java.util.List;
+
+public class WorkmateFragment extends BaseFragment {
+
+    public WorkmateFragment() { }
 
 
-public class WorkmateFragment extends Fragment {
-
-    // TODO: Customize parameter argument names
-    private static final String ARG_COLUMN_COUNT = "column-count";
-    // TODO: Customize parameters
-    private int mColumnCount = 1;
-    private OnListFragmentInteractionListener mListener;
-
-    public WorkmateFragment() {
-    }
-
-    // TODO: Customize parameter initialization
-    @SuppressWarnings("unused")
     public static WorkmateFragment newInstance() {
         WorkmateFragment fragment = new WorkmateFragment();
         return fragment;
     }
 
     @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-    }
+    protected int setLayout() { return R.layout.fragment_workmate_list; }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_workmate_list, container, false);
+    protected void initList() {
 
-        // Set the adapter
-        if (view instanceof RecyclerView) {
-            Context context = view.getContext();
-            RecyclerView recyclerView = (RecyclerView) view;
-            if (mColumnCount <= 1) {
-                recyclerView.setLayoutManager(new LinearLayoutManager(context));
-            } else {
-                recyclerView.setLayoutManager(new GridLayoutManager(context, mColumnCount));
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+
+        db.collection("users").get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+            @Override
+            public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                if (task.isSuccessful()){
+                    Query query = (Query) task.getResult().getDocuments();
+                    populateAdapter(query);
+                }else {
+                    Log.w("test", "Error getting documents.", task.getException());
+                }
             }
-            recyclerView.setAdapter(new MyWorkmateRecyclerViewAdapter(DummyContent.ITEMS, mListener));
-        }
-        return view;
+        });
+
     }
 
+    private void populateAdapter (Query query){
+
+        FirebaseRecyclerOptions<Workmate> options =
+                new FirebaseRecyclerOptions.Builder<Workmate>()
+                        .setQuery(query, Workmate.class)
+                        .build();
+
+        FirebaseRecyclerAdapter test = new FirebaseRecyclerAdapter<Workmate,WorkmateHolder>(options) {
+            @NonNull
+            @Override
+            public WorkmateHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+                View view = LayoutInflater.from(parent.getContext())
+                        .inflate(R.layout.fragment_workmate,parent,false);
+                return new WorkmateHolder(view);
+            }
+
+            @Override
+            protected void onBindViewHolder(@NonNull WorkmateHolder workmateHolder, int i, @NonNull Workmate workmate) {
+                workmateHolder.workmateName.setText(workmate.getUsername());
+                Glide.with(getContext()).load(workmate.getUrlPicture()).into(workmateHolder.workmateImage);
+            }
+
+        };
+
+        mRecyclerView.setLayoutManager(linearLayoutManager);
+        mRecyclerView.setAdapter(test);
+    }
 
     @Override
-    public void onAttach(Context context) {
-        super.onAttach(context);
+    public void onStart() {
+        super.onStart();
     }
 
     @Override
-    public void onDetach() {
-        super.onDetach();
-        mListener = null;
-    }
-
-    public interface OnListFragmentInteractionListener {
-        // TODO: Update argument type and name
-        void onListFragmentInteraction(DummyItem item);
+    public void onStop() {
+        super.onStop();
     }
 }
+
+    class WorkmateHolder extends RecyclerView.ViewHolder{
+
+        public TextView workmateName;
+        public ImageView workmateImage;
+        public WorkmateHolder(View itemView) {
+            super(itemView);
+            workmateName =itemView.findViewById(R.id.tvWorkemate);
+            workmateImage = itemView.findViewById(R.id.imgWorkmate);
+        }
+    }
+

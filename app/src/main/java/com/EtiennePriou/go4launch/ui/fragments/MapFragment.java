@@ -26,9 +26,9 @@ import android.widget.Toast;
 import com.EtiennePriou.go4launch.R;
 import com.EtiennePriou.go4launch.di.DI;
 import com.EtiennePriou.go4launch.events.ReceiveListePlace;
-import com.EtiennePriou.go4launch.models.Place;
-import com.EtiennePriou.go4launch.services.map.GoogleMapApiService;
+import com.EtiennePriou.go4launch.models.Places;
 import com.EtiennePriou.go4launch.services.places.PlacesApiService;
+import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapView;
@@ -38,13 +38,22 @@ import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.libraries.places.api.model.Place;
+import com.google.android.libraries.places.api.model.PlaceLikelihood;
+import com.google.android.libraries.places.api.net.FindCurrentPlaceRequest;
+import com.google.android.libraries.places.api.net.FindCurrentPlaceResponse;
+import com.google.android.libraries.places.api.net.PlacesClient;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
+import bolts.Task;
+
+import static android.Manifest.permission.ACCESS_FINE_LOCATION;
 import static android.content.Context.LOCATION_SERVICE;
 
 public class MapFragment extends Fragment implements OnMapReadyCallback, LocationListener {
@@ -214,15 +223,15 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, Locatio
         return bestProvider;
     }
 
-    private void showNearbyPlaces(List<Place> nearbyPlaceList) {
+    private void showNearbyPlaces(List<Places> nearbyPlacesList) {
 
-        for (Place place : nearbyPlaceList) {
+        for (Places places : nearbyPlacesList) {
             MarkerOptions markerOptions = new MarkerOptions();
 
-            String placeName = place.getName();
-            String vicinity = place.getAdresse();
-            double lat = Double.parseDouble( place.getLat() );
-            double lng = Double.parseDouble( place.getLongit() );
+            String placeName = places.getName();
+            String vicinity = places.getAdresse();
+            double lat = Double.parseDouble( places.getLat() );
+            double lng = Double.parseDouble( places.getLongit() );
 
             LatLng latLng = new LatLng( lat, lng);
             markerOptions.position(latLng);
@@ -270,6 +279,6 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, Locatio
 
     @Subscribe
     public void onReceiveList(ReceiveListePlace event){
-        showNearbyPlaces(event.nearbyPlaceList);
+        showNearbyPlaces(event.mNearbyPlacesList);
     }
 }

@@ -12,7 +12,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.EtiennePriou.go4launch.R;
-import com.EtiennePriou.go4launch.models.Place;
+import com.EtiennePriou.go4launch.models.Places;
 import com.EtiennePriou.go4launch.ui.DetailPlaceActivity;
 import com.bumptech.glide.Glide;
 
@@ -20,7 +20,7 @@ import java.util.List;
 
 public class MyPlaceRecyclerViewAdapter extends RecyclerView.Adapter<MyPlaceRecyclerViewAdapter.ViewHolder> {
 
-    private final List<Place> mValues;
+    private final List<Places> mValues;
     private Context mContext;
     private static final String PLACEREFERENCE = "placeReference";
 
@@ -37,22 +37,22 @@ public class MyPlaceRecyclerViewAdapter extends RecyclerView.Adapter<MyPlaceRecy
 
     @Override
     public void onBindViewHolder(final ViewHolder holder, int position) {
-        final Place place = mValues.get(position);
-        holder.mtvNamePlace.setText(place.getName());
-        holder.mtvAdresse.setText(place.getAdresse());
+        final Places places = mValues.get(position);
+        holder.mtvNamePlace.setText(places.getName());
+        holder.mtvAdresse.setText(places.getAdresse());
 
-        if (place.getImgReference() != null){
+        if (places.getImgReference() != null){
             Glide.with(holder.imgPlaceListe.getContext())
-                    .load(place.getPhotoUri())
+                    .load(places.getPhotoUri())
                     .into(holder.imgPlaceListe);
         }else {
             holder.imgPlaceListe.setImageResource(R.drawable.notext_logo200x200);
         }
-        if (place.isOpen() == null){
+        if (places.isOpen() == null){
             holder.mtvIsOpen.setTextColor(ContextCompat.getColor(mContext,R.color.quantum_black_text));
             holder.mtvIsOpen.setText(R.string.UnknownTime);
         }else{
-            boolean isOpen = Boolean.parseBoolean(place.isOpen());
+            boolean isOpen = Boolean.parseBoolean(places.isOpen());
             if (isOpen){
                 holder.mtvIsOpen.setTextColor(ContextCompat.getColor(mContext,R.color.green));
                 holder.mtvIsOpen.setText(R.string.open);
@@ -67,7 +67,7 @@ public class MyPlaceRecyclerViewAdapter extends RecyclerView.Adapter<MyPlaceRecy
             @Override
             public void onClick(View view) {
                 Intent intent = new Intent(view.getContext(), DetailPlaceActivity.class);
-                intent.putExtra(PLACEREFERENCE, place.getReference());
+                intent.putExtra(PLACEREFERENCE, places.getReference());
                 view.getContext().startActivity(intent);
             }
         });

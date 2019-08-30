@@ -2,7 +2,8 @@ package com.EtiennePriou.go4launch.utils;
 
 
 import android.util.Log;
-import com.EtiennePriou.go4launch.models.Place;
+import com.EtiennePriou.go4launch.models.Places;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -16,13 +17,13 @@ import java.util.List;
 
 public class DataParser {
 
-    private Place getPlace(JSONObject googlePlaceJson){
+    private Places getPlace(JSONObject googlePlaceJson){
         String name = null, adresse = null, reference = null, imgReference = null;
         String placeId = null;
         String lat = null , longit = null;
         String isOpen = null;
 
-        Place place;
+        Places places;
 
         Log.d("DataParser","jsonobject ="+googlePlaceJson.toString());
 
@@ -52,20 +53,20 @@ public class DataParser {
             e.printStackTrace();
         }
 
-        place = new Place(name,adresse,reference,imgReference,placeId,lat,longit,isOpen);
-        return place;
+        places = new Places(name,adresse,reference,imgReference,placeId,lat,longit,isOpen);
+        return places;
     }
 
-    private List<Place>getPlaces(JSONArray jsonArray) {
+    private List<Places>getPlaces(JSONArray jsonArray) {
         int count = jsonArray.length();
-        List<Place> placelist = new ArrayList<>();
-        Place place;
+        List<Places> placelist = new ArrayList<>();
+        Places places;
 
         for(int i = 0; i<count;i++)
         {
             try {
-                place = getPlace((JSONObject) jsonArray.get(i));
-                placelist.add(place);
+                places = getPlace((JSONObject) jsonArray.get(i));
+                placelist.add(places);
             } catch (JSONException e) {
                 e.printStackTrace();
             }
@@ -73,7 +74,7 @@ public class DataParser {
         return placelist;
     }
 
-    public Place addMissingDetails(Place place, JSONObject jsonObject){
+    public Places addMissingDetails(Places places, JSONObject jsonObject){
 
         String webSite = null, phone_number = null;
         try {
@@ -87,12 +88,12 @@ public class DataParser {
         } catch (JSONException e) {
             e.printStackTrace();
         }
-        place.setWebSite(webSite);
-        place.setPhonenumber(phone_number);
-        return place;
+        places.setWebSite(webSite);
+        places.setPhonenumber(phone_number);
+        return places;
     }
 
-    public List<Place> parse(String jsonData) {
+    public List<Places> parse(String jsonData) {
         JSONArray jsonArray = null;
         JSONObject jsonObject;
 

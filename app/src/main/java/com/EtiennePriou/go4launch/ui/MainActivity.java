@@ -13,6 +13,8 @@ import androidx.annotation.NonNull;
 import androidx.core.view.GravityCompat;
 import androidx.appcompat.app.ActionBarDrawerToggle;
 
+import android.app.Activity;
+import android.content.Intent;
 import android.view.MenuItem;
 
 import com.google.android.material.navigation.NavigationView;
@@ -37,7 +39,6 @@ public class MainActivity extends BaseActivity
     private TextView mtv_Menu_Mail;
     private TextView mtv_Menu_Name;
     private ImageView imgMenuProfile;
-    private FrameLayout mFrameLayout;
     BottomNavigationView bottomNavigationView;
 
     private BottomNavigationView.OnNavigationItemSelectedListener mOnNavigationItemSelectedListener
@@ -49,10 +50,10 @@ public class MainActivity extends BaseActivity
                     showFragment(MapFragment.newInstance());
                     return true;
                 case R.id.navigation_list_view:
-                    showFragment(PlaceFragment.newInstance(mPlacesApiService.getNearbyPlacesList()));
+                    showFragment(PlaceFragment.newInstance());
                     return true;
                 case R.id.navigation_workmates:
-                    showFragment(new WorkmateFragment());
+                    showFragment(WorkmateFragment.newInstance());
                     return true;
             }
             return false;
@@ -71,7 +72,7 @@ public class MainActivity extends BaseActivity
         DrawerLayout drawer = findViewById(R.id.drawer_layout);
         Toolbar toolbar = findViewById(R.id.toolbar);
         bottomNavigationView = findViewById(R.id.bottom_nav_view);
-        mFrameLayout = findViewById(R.id.container);
+        FrameLayout frameLayout = findViewById(R.id.container);
 
         View headerView = navigationView.getHeaderView(0);
         imgMenuProfile = headerView.findViewById(R.id.img_menu_profile);
@@ -81,6 +82,7 @@ public class MainActivity extends BaseActivity
         setSupportActionBar(toolbar);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
                 this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
+
         drawer.addDrawerListener(toggle);
         toggle.syncState();
         bottomNavigationView.setOnNavigationItemSelectedListener(mOnNavigationItemSelectedListener);
@@ -123,6 +125,8 @@ public class MainActivity extends BaseActivity
         if (id == R.id.nav_your_lunch) {
             //TODO implement fragment map
         } else if (id == R.id.nav_setting) {
+            Intent intentSetting = new Intent(this,SettingsActivity.class);
+            this.startActivity(intentSetting);
 
         } else if (id == R.id.nav_logout) {
             FirebaseAuth.getInstance().signOut();

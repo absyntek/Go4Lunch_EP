@@ -1,13 +1,13 @@
 package com.EtiennePriou.go4launch.events;
 
-import com.EtiennePriou.go4launch.models.Place;
+import com.EtiennePriou.go4launch.models.Places;
 
 import java.util.List;
 
 public class ReceiveListePlace {
-    public List<Place> nearbyPlaceList;
+    public List<Places> mNearbyPlacesList;
 
-    public ReceiveListePlace (List<Place> nearbyPlaceList){
-        this.nearbyPlaceList = nearbyPlaceList;
+    public ReceiveListePlace (List<Places> nearbyPlacesList){
+        this.mNearbyPlacesList = nearbyPlacesList;
     }
 }

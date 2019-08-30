@@ -1,9 +1,8 @@
 <resources>
     <string name="app_name">Go4Launch</string>
 
-    <string name="facebook_app_id">1622778064523263</string>
+    <string name="facebook_application_id">1622778064523263</string>
     <string name="fb_login_protocol_scheme">fb1622778064523263</string>
-    <string name="place_api_key">AIzaSyD5hmxXOnLbZOEwlAuJ5Y8pQHxhPYQ8AvM</string>
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
     <string name="nav_header_title">Android Studio</string>
@@ -55,7 +54,7 @@
 
         "Motion respects and reinforces the user as the prime mover. Primary user actions are "
         "inflection points that initiate motion, transforming the whole design.\n"
-        "All action takes place in a single environment. Objects are presented to the user without "
+        "All action takes places in a single environment. Objects are presented to the user without "
         "breaking the continuity of experience even as they transform and reorganize.\n"
         "Motion is meaningful and appropriate, serving to focus attention and maintain continuity. "
         "Feedback is subtle yet clear. Transitions are efﬁcient yet coherent.\n\n"
@@ -117,5 +116,23 @@
         "when a user tries to pick up one of cards.\n\n"
     </string>
     <string name="UnknownTime">Unknown Open or Close Time</string>
+    <string name="error_unknown_error">error_unknown_error</string>
+    <string name="title_activity_settings">Settings</string>
+
+    <!-- Preference Titles -->
+    <string name="messages_header">Messages</string>
+    <string name="sync_header">Sync</string>
+
+    <!-- Messages Preferences -->
+    <string name="signature_title">Your signature</string>
+    <string name="reply_title">Default reply action</string>
+
+    <!-- Sync Preferences -->
+    <string name="sync_title">Sync email periodically</string>
+    <string name="attachment_title">Download incoming attachments</string>
+    <string name="attachment_summary_on">Automatically download attachments for incoming emails
+    </string>
+    <string name="attachment_summary_off">Only download attachments when manually requested</string>
+    <string name="signin">SignIn</string>
 
 </resources>
