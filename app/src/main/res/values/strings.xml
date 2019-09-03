@@ -54,7 +54,7 @@
 
         "Motion respects and reinforces the user as the prime mover. Primary user actions are "
         "inflection points that initiate motion, transforming the whole design.\n"
-        "All action takes places in a single environment. Objects are presented to the user without "
+        "All action takes placeModel in a single environment. Objects are presented to the user without "
         "breaking the continuity of experience even as they transform and reorganize.\n"
         "Motion is meaningful and appropriate, serving to focus attention and maintain continuity. "
         "Feedback is subtle yet clear. Transitions are efﬁcient yet coherent.\n\n"
@@ -115,7 +115,7 @@
         "For example, position the FAB to one side of stream of a cards so the FAB won’t interfere "
         "when a user tries to pick up one of cards.\n\n"
     </string>
-    <string name="UnknownTime">Unknown Open or Close Time</string>
+    <string name="UnknownTime">Unknown Open/Close Time</string>
     <string name="error_unknown_error">error_unknown_error</string>
     <string name="title_activity_settings">Settings</string>
 
@@ -134,5 +134,9 @@
     </string>
     <string name="attachment_summary_off">Only download attachments when manually requested</string>
     <string name="signin">SignIn</string>
+    <string name="title_activity_scrolling">ScrollingActivity</string>
+    <string name="call">CALL</string>
+    <string name="like">LIKE</string>
+    <string name="website">WEBSITE</string>
 
 </resources>

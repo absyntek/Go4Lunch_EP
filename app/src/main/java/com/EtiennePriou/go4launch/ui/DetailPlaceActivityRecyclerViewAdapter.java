@@ -1,4 +1,4 @@
-package com.EtiennePriou.go4launch.ui.fragments.workmates_list;
+package com.EtiennePriou.go4launch.ui;
 
 import android.view.LayoutInflater;
 import android.view.View;
@@ -14,13 +14,16 @@ import com.EtiennePriou.go4launch.models.Workmate;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.RequestOptions;
 
+
 import java.util.List;
 
-public class MyWorkmateRecyclerViewAdapter extends RecyclerView.Adapter<MyWorkmateRecyclerViewAdapter.ViewHolder>{
+public class DetailPlaceActivityRecyclerViewAdapter extends RecyclerView.Adapter<DetailPlaceActivityRecyclerViewAdapter.ViewHolder>{
 
-    private List<Workmate> mWorkmates;
+    private List<Workmate> mWorkmatesThisPlace;
 
-    MyWorkmateRecyclerViewAdapter(List<Workmate> workmates) { mWorkmates = workmates; }
+    DetailPlaceActivityRecyclerViewAdapter(List<Workmate> workmatesThisPlace) {
+        this.mWorkmatesThisPlace = workmatesThisPlace;
+    }
 
     @NonNull
     @Override
@@ -32,8 +35,7 @@ public class MyWorkmateRecyclerViewAdapter extends RecyclerView.Adapter<MyWorkma
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-
-        final Workmate workmate = mWorkmates.get(position);
+        final Workmate workmate = mWorkmatesThisPlace.get(position);
 
         holder.workmateName.setText(workmate.getUsername());
 
@@ -45,7 +47,7 @@ public class MyWorkmateRecyclerViewAdapter extends RecyclerView.Adapter<MyWorkma
 
     @Override
     public int getItemCount() {
-        return mWorkmates.size();
+        return mWorkmatesThisPlace.size();
     }
 
     class ViewHolder extends RecyclerView.ViewHolder{

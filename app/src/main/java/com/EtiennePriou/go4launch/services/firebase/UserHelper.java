@@ -8,6 +8,9 @@ import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class UserHelper {
 
     private static final String COLLECTION_NAME = "users";
@@ -20,14 +23,14 @@ public class UserHelper {
 
     public static DatabaseReference getReference(){
         FirebaseDatabase database = FirebaseDatabase.getInstance();
-        DatabaseReference myRef = database.getReference(COLLECTION_NAME);
-        return myRef;
+        return database.getReference(COLLECTION_NAME);
     }
 
     // --- CREATE ---
 
     public static Task<Void> createUser(String uid, String username, String urlPicture) {
-        Workmate userToCreate = new Workmate(uid, username, urlPicture);
+        List<String> favoritePlaces = new ArrayList<>();
+        Workmate userToCreate = new Workmate(uid, username, urlPicture, "abc", favoritePlaces);
         return UserHelper.getUsersCollection().document(uid).set(userToCreate);
     }
 
@@ -43,8 +46,8 @@ public class UserHelper {
         return UserHelper.getUsersCollection().document(uid).update("username", username);
     }
 
-    public static Task<Void> updateIsMentor(String uid, Boolean isMentor) {
-        return UserHelper.getUsersCollection().document(uid).update("isMentor", isMentor);
+    public static Task<Void> updatePlaceToGo(String uid, String placeRef) {
+        return UserHelper.getUsersCollection().document(uid).update("placeToGo", placeRef);
     }
 
     // --- DELETE ---

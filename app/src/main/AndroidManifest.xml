@@ -18,11 +18,11 @@
         tools:ignore="GoogleAppIndexingWarning">
         <activity
             android:name=".ui.SettingsActivity"
-            android:label="@string/title_activity_settings"></activity>
+            android:label="@string/title_activity_settings" />
         <activity
             android:name=".ui.DetailPlaceActivity"
-            android:label="@string/title_activity_detail_place"
-            android:theme="@style/AppTheme.NoActionBar"></activity>
+            android:label=""
+            android:theme="@style/AppTheme.NoActionBar" />
 
         <meta-data
             android:name="com.google.android.geo.API_KEY"
@@ -55,7 +55,6 @@
             android:name=".ui.MainActivity"
             android:label="@string/app_name"
             android:theme="@style/AppTheme.NoActionBar" />
-        <activity android:name=".ConnectionActivity"></activity>
         <activity
             android:name=".SplashActivity"
             android:label="@string/app_name">

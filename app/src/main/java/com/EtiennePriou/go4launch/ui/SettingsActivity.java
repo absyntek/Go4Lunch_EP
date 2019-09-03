@@ -3,7 +3,6 @@ package com.EtiennePriou.go4launch.ui;
 import android.os.Bundle;
 
 import androidx.appcompat.app.ActionBar;
-import androidx.appcompat.app.AppCompatActivity;
 import androidx.preference.PreferenceFragmentCompat;
 
 import com.EtiennePriou.go4launch.R;

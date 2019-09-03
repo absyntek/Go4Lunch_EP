@@ -3,7 +3,7 @@ package com.EtiennePriou.go4launch.utils;
 
 import android.os.AsyncTask;
 
-import com.EtiennePriou.go4launch.models.Places;
+import com.EtiennePriou.go4launch.models.PlaceModel;
 
 import java.io.IOException;
 import java.util.List;
@@ -31,11 +31,11 @@ public class GetNearbyPlacesData extends AsyncTask<String, String, String> {
 
         GetDetailsPlaces mGetDetailsPlaces = new GetDetailsPlaces();
 
-        List<Places> nearbyPlacesList;
+        List<PlaceModel> nearbyPlaceModelList;
 
         DataParser parser = new DataParser();
-        nearbyPlacesList = parser.parse(s);
+        nearbyPlaceModelList = parser.parse(s);
 
-        mGetDetailsPlaces.execute(nearbyPlacesList);
+        mGetDetailsPlaces.execute(nearbyPlaceModelList);
     }
 }

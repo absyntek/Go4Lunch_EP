@@ -13,7 +13,6 @@ import androidx.annotation.NonNull;
 import androidx.core.view.GravityCompat;
 import androidx.appcompat.app.ActionBarDrawerToggle;
 
-import android.app.Activity;
 import android.content.Intent;
 import android.view.MenuItem;
 
@@ -94,12 +93,13 @@ public class MainActivity extends BaseActivity
         FirebaseAuth auth = FirebaseAuth.getInstance();
         FirebaseUser currentUser = auth.getCurrentUser();
         if (currentUser != null)setupMenuInfo(currentUser);
+        if (mFireBaseApi.getWorkmatesList() == null) mFireBaseApi.updateWorkmatesList(currentUser);
         showFragment(MapFragment.newInstance());
     }
 
     private void setupMenuInfo(FirebaseUser user){
         mtv_Menu_Mail.setText(user.getEmail());
-        mtv_Menu_Name.setText(user.getDisplayName());
+        mtv_Menu_Name.setText(user.getDisplayName()); //TODO Return null WHYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYY ???????????????????
         Glide.with(imgMenuProfile.getContext())
                 .load(user.getPhotoUrl())
                 .apply(RequestOptions.circleCropTransform())

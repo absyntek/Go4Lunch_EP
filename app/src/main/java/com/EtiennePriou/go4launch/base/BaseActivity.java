@@ -9,35 +9,26 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.EtiennePriou.go4launch.R;
 import com.EtiennePriou.go4launch.di.DI;
-import com.EtiennePriou.go4launch.services.places.PlacesApiService;
+import com.EtiennePriou.go4launch.models.Workmate;
+import com.EtiennePriou.go4launch.services.firebase.FireBaseApi;
+import com.EtiennePriou.go4launch.services.places.PlacesApi;
 import com.google.android.gms.tasks.OnFailureListener;
 
 public abstract class BaseActivity extends AppCompatActivity {
 
-    protected PlacesApiService mPlacesApiService;
+    protected PlacesApi mPlacesApi;
+    protected FireBaseApi mFireBaseApi;
 
-    public abstract int getLayoutContentViewID();
+    protected abstract int getLayoutContentViewID();
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         this.setContentView(this.getLayoutContentViewID());
-        mPlacesApiService = DI.getServiceApiPlaces();
+        mPlacesApi = DI.getServiceApiPlaces();
+        mFireBaseApi = DI.getServiceFireBase();
         setupUi();
         withOnCreate();
-    }
-
-    // --------------------
-    // ERROR HANDLER
-    // --------------------
-
-    protected OnFailureListener onFailureListener(){
-        return new OnFailureListener() {
-            @Override
-            public void onFailure(@NonNull Exception e) {
-                Toast.makeText(getApplicationContext(), getString(R.string.error_unknown_error), Toast.LENGTH_LONG).show();
-            }
-        };
     }
 
     protected abstract void setupUi();

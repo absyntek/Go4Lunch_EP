@@ -1,19 +1,11 @@
 package com.EtiennePriou.go4launch.ui.fragments.workmates_list;
 
-import androidx.annotation.NonNull;
-
-import android.util.Log;
-
 import com.EtiennePriou.go4launch.R;
 import com.EtiennePriou.go4launch.base.BaseFragment;
-import com.EtiennePriou.go4launch.models.Workmate;
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
-import com.google.firebase.firestore.DocumentSnapshot;
-import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.QuerySnapshot;
+import com.EtiennePriou.go4launch.events.ReceiveWorkmatePlace;
 
-import java.util.List;
+import org.greenrobot.eventbus.EventBus;
+import org.greenrobot.eventbus.Subscribe;
 
 
 public class WorkmateFragment extends BaseFragment {
@@ -22,8 +14,7 @@ public class WorkmateFragment extends BaseFragment {
 
 
     public static WorkmateFragment newInstance() {
-        WorkmateFragment fragment = new WorkmateFragment();
-        return fragment;
+        return new WorkmateFragment();
     }
 
     @Override
@@ -31,22 +22,27 @@ public class WorkmateFragment extends BaseFragment {
 
     @Override
     protected void initList() {
+        if (mFireBaseApi.getWorkmatesList() != null) setAdapter();
+    }
 
-        FirebaseFirestore db = FirebaseFirestore.getInstance();
+    private void setAdapter(){
+        mRecyclerView.setAdapter(new MyWorkmateRecyclerViewAdapter(mFireBaseApi.getWorkmatesList()));
+    }
 
-        db.collection("users").get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
-            @Override
-            public void onComplete(@NonNull Task<QuerySnapshot> task) {
-                if (task.isSuccessful()){
-                    List<Workmate> workmates = task.getResult().toObjects(Workmate.class);
-                    mRecyclerView.setAdapter(new MyWorkmateRecyclerViewAdapter(workmates));
+    @Override
+    public void onStart() {
+        super.onStart();
+        EventBus.getDefault().register(this);
+    }
 
-                }else {
-                    Log.w("test", "Error getting documents.", task.getException());
-                }
-            }
-        });
+    @Override
+    public void onStop() {
+        super.onStop();
+        EventBus.getDefault().unregister(this);
+    }
 
+    @Subscribe
+    public void onReceiveList(ReceiveWorkmatePlace event){
+        setAdapter();
     }
 }
-

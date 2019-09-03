@@ -14,15 +14,15 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.EtiennePriou.go4launch.di.DI;
+import com.EtiennePriou.go4launch.services.firebase.FireBaseApi;
 import com.EtiennePriou.go4launch.services.firebase.UserHelper;
-import com.EtiennePriou.go4launch.services.places.PlacesApiService;
+import com.EtiennePriou.go4launch.services.places.PlacesApi;
 
 public abstract class BaseFragment extends Fragment {
 
-    protected PlacesApiService mPlacesApiService;
-    protected UserHelper mUserHelper;
+    protected PlacesApi mPlacesApi;
+    protected FireBaseApi mFireBaseApi;
     protected RecyclerView mRecyclerView;
-    protected LinearLayoutManager linearLayoutManager;
 
     protected abstract int setLayout();
     protected abstract void initList();
@@ -30,15 +30,15 @@ public abstract class BaseFragment extends Fragment {
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        mPlacesApiService = DI.getServiceApiPlaces();
-        mUserHelper = new UserHelper();
+        mPlacesApi = DI.getServiceApiPlaces();
+        mFireBaseApi = DI.getServiceFireBase();
     }
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(setLayout(),container,false);
-        linearLayoutManager = new LinearLayoutManager(getContext());
+        LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getContext());
         mRecyclerView = (RecyclerView) view;
         mRecyclerView.setLayoutManager(linearLayoutManager);
         mRecyclerView.addItemDecoration(new DividerItemDecoration(getContext(), DividerItemDecoration.VERTICAL));
@@ -59,15 +59,5 @@ public abstract class BaseFragment extends Fragment {
 
     protected void refreshView() {
         mRecyclerView.getAdapter().notifyDataSetChanged();
-    }
-
-    @Override
-    public void onAttach(Context context) {
-        super.onAttach(context);
-    }
-
-    @Override
-    public void onDetach() {
-        super.onDetach();
     }
 }

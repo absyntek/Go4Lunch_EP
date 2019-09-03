@@ -1,5 +1,6 @@
 package com.EtiennePriou.go4launch.ui.fragments.place_view;
 
+import androidx.annotation.NonNull;
 import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -12,7 +13,10 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.EtiennePriou.go4launch.R;
-import com.EtiennePriou.go4launch.models.Places;
+import com.EtiennePriou.go4launch.di.DI;
+import com.EtiennePriou.go4launch.models.PlaceModel;
+import com.EtiennePriou.go4launch.models.Workmate;
+import com.EtiennePriou.go4launch.services.firebase.FireBaseApi;
 import com.EtiennePriou.go4launch.ui.DetailPlaceActivity;
 import com.bumptech.glide.Glide;
 
@@ -20,39 +24,43 @@ import java.util.List;
 
 public class MyPlaceRecyclerViewAdapter extends RecyclerView.Adapter<MyPlaceRecyclerViewAdapter.ViewHolder> {
 
-    private final List<Places> mValues;
+    private final List<PlaceModel> mPlaceModelList;
     private Context mContext;
     private static final String PLACEREFERENCE = "placeReference";
 
-    public MyPlaceRecyclerViewAdapter(List items) {
-        mValues = items;
+    MyPlaceRecyclerViewAdapter(List<PlaceModel> items) {
+        mPlaceModelList = items;
     }
 
+    @NonNull
     @Override
-    public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+    public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(parent.getContext())
                 .inflate(R.layout.fragment_place, parent, false);
         return new ViewHolder(view);
     }
 
     @Override
-    public void onBindViewHolder(final ViewHolder holder, int position) {
-        final Places places = mValues.get(position);
-        holder.mtvNamePlace.setText(places.getName());
-        holder.mtvAdresse.setText(places.getAdresse());
+    public void onBindViewHolder(@NonNull final ViewHolder holder, int position) {
+        final PlaceModel placeModel = mPlaceModelList.get(position);
+        holder.mtvNamePlace.setText(placeModel.getName());
+        holder.mtvAdresse.setText(placeModel.getAdresse());
 
-        if (places.getImgReference() != null){
+        // -- load image --
+        if (placeModel.getImgReference() != null){
             Glide.with(holder.imgPlaceListe.getContext())
-                    .load(places.getPhotoUri())
+                    .load(placeModel.getPhotoUri())
                     .into(holder.imgPlaceListe);
         }else {
             holder.imgPlaceListe.setImageResource(R.drawable.notext_logo200x200);
         }
-        if (places.isOpen() == null){
+
+        // -- check opening time --
+        if (placeModel.isOpen() == null){
             holder.mtvIsOpen.setTextColor(ContextCompat.getColor(mContext,R.color.quantum_black_text));
             holder.mtvIsOpen.setText(R.string.UnknownTime);
         }else{
-            boolean isOpen = Boolean.parseBoolean(places.isOpen());
+            boolean isOpen = Boolean.parseBoolean(placeModel.isOpen());
             if (isOpen){
                 holder.mtvIsOpen.setTextColor(ContextCompat.getColor(mContext,R.color.green));
                 holder.mtvIsOpen.setText(R.string.open);
@@ -63,11 +71,26 @@ public class MyPlaceRecyclerViewAdapter extends RecyclerView.Adapter<MyPlaceRecy
             }
         }
 
+        // -- Check number of workmates wich are comming to this place --
+        int nbrWorkmate = 0;
+        FireBaseApi fireBaseApi = DI.getServiceFireBase();
+        for (Workmate workmate : fireBaseApi.getWorkmatesList()){
+            if (workmate.getPlaceToGo() != null && workmate.getPlaceToGo().equals(placeModel.getReference())){
+                ++nbrWorkmate;
+            }
+        }
+        if (fireBaseApi.getActualUser().getPlaceToGo() != null && fireBaseApi.getActualUser().getPlaceToGo().equals(placeModel.getReference())){
+            ++nbrWorkmate;
+        }
+        String workmatecomming = "(" + nbrWorkmate + ")";
+        holder.mtvNbrWorkmates.setText(workmatecomming);
+
+        // -- set listener for opening detail activity --
         holder.mView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 Intent intent = new Intent(view.getContext(), DetailPlaceActivity.class);
-                intent.putExtra(PLACEREFERENCE, places.getReference());
+                intent.putExtra(PLACEREFERENCE, placeModel.getReference());
                 view.getContext().startActivity(intent);
             }
         });
@@ -75,12 +98,12 @@ public class MyPlaceRecyclerViewAdapter extends RecyclerView.Adapter<MyPlaceRecy
 
     @Override
     public int getItemCount() {
-        return mValues.size();
+        return mPlaceModelList.size();
     }
 
     public class ViewHolder extends RecyclerView.ViewHolder {
         private final View mView;
-        private final TextView mtvNamePlace, mtvAdresse, mtvIsOpen;
+        private final TextView mtvNamePlace, mtvAdresse, mtvIsOpen, mtvNbrWorkmates;
         private final ImageView imgPlaceListe;
 
 
@@ -90,6 +113,7 @@ public class MyPlaceRecyclerViewAdapter extends RecyclerView.Adapter<MyPlaceRecy
             mtvNamePlace = view.findViewById(R.id.tvNamePlace);
             mtvAdresse = view.findViewById(R.id.tvAdressePlace);
             mtvIsOpen = mView.findViewById(R.id.tvIsOpen);
+            mtvNbrWorkmates = mView.findViewById(R.id.tvWorkmateComming);
             imgPlaceListe = mView.findViewById(R.id.imgPlace);
             mContext = view.getContext();
         }

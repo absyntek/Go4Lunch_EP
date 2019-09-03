@@ -4,10 +4,9 @@ package com.EtiennePriou.go4launch.ui.fragments;
 import android.Manifest;
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.location.Criteria;
 import android.location.Location;
-import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
 
@@ -17,7 +16,6 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -25,47 +23,43 @@ import android.widget.Toast;
 
 import com.EtiennePriou.go4launch.R;
 import com.EtiennePriou.go4launch.di.DI;
-import com.EtiennePriou.go4launch.events.ReceiveListePlace;
-import com.EtiennePriou.go4launch.models.Places;
-import com.EtiennePriou.go4launch.services.places.PlacesApiService;
-import com.google.android.gms.common.api.ApiException;
+import com.EtiennePriou.go4launch.events.ReceiveListPlace;
+import com.EtiennePriou.go4launch.models.PlaceModel;
+import com.EtiennePriou.go4launch.services.places.PlacesApi;
+
+import com.EtiennePriou.go4launch.ui.DetailPlaceActivity;
+import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationListener;
+import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapView;
-import com.google.android.gms.maps.MapsInitializer;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
-import com.google.android.libraries.places.api.model.Place;
-import com.google.android.libraries.places.api.model.PlaceLikelihood;
-import com.google.android.libraries.places.api.net.FindCurrentPlaceRequest;
-import com.google.android.libraries.places.api.net.FindCurrentPlaceResponse;
-import com.google.android.libraries.places.api.net.PlacesClient;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.SuccessContinuation;
+import com.google.android.gms.tasks.Task;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
-import bolts.Task;
-
-import static android.Manifest.permission.ACCESS_FINE_LOCATION;
-import static android.content.Context.LOCATION_SERVICE;
-
-public class MapFragment extends Fragment implements OnMapReadyCallback, LocationListener {
+public class MapFragment extends Fragment implements OnMapReadyCallback, LocationListener, GoogleMap.OnInfoWindowClickListener {
 
     private static final int REQUEST_ID_ACCESS_COURSE_FINE_LOCATION = 100;
-    private static final String MYTAG = "Test";
     private GoogleMap mMap;
     private View mView;
     private Context mContext;
     private ProgressDialog myProgress;
-    private PlacesApiService mPlacesApiService;
-    private Location myLocation;
+    private FusedLocationProviderClient fusedLocationClient;
+    private PlacesApi mPlacesApi;
+    private static final String PLACEREFERENCE = "placeReference";
+
 
     public MapFragment() { }
 
@@ -80,7 +74,8 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, Locatio
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         mContext = getContext();
-        mPlacesApiService = DI.getServiceApiPlaces();
+        mPlacesApi = DI.getServiceApiPlaces();
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this.getContext());
 
         // Create Progress Bar.
         myProgress = new ProgressDialog(mContext);
@@ -111,12 +106,10 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, Locatio
     }
 
     @Override
-    public void onMapReady(GoogleMap googleMap) {
-        MapsInitializer.initialize(mContext);
-        mMap = googleMap;
-        googleMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
+    public void onMapReady(GoogleMap map) {
+        mMap = map;
         requestPermissionLocation();
-        showMyLocation();
+        mMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
     }
 
     private void requestPermissionLocation() {
@@ -130,6 +123,12 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, Locatio
             return;
         }
         mMap.setMyLocationEnabled(true);
+        fusedLocationClient.getLastLocation().addOnSuccessListener(new OnSuccessListener<Location>() {
+            @Override
+            public void onSuccess(Location location) {
+                setNearbyPlaces(location);
+            }
+        });
     }
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
@@ -140,9 +139,6 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, Locatio
                     && grantResults[1] == PackageManager.PERMISSION_GRANTED) {
 
                 Toast.makeText(getContext(), "Permission granted!", Toast.LENGTH_LONG).show();
-
-                // Show current location on Map.
-                this.showMyLocation();
             }
             // Cancelled or denied.
             else {
@@ -151,118 +147,37 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, Locatio
         }
     }
 
-    private void showMyLocation() {
+    private void setNearbyPlaces(Location location) {
 
-        LocationManager locationManager = (LocationManager) mContext.getSystemService(LOCATION_SERVICE);
-
-        String locationProvider = this.getEnabledLocationProvider();
-
-        if (locationProvider == null) { return; }
-
-        // Millisecond
-        final long MIN_TIME_BW_UPDATES = 1000;
-        // Met
-        final float MIN_DISTANCE_CHANGE_FOR_UPDATES = 1;
-        try {
-            assert locationManager != null;
-            locationManager.requestLocationUpdates(locationProvider, MIN_TIME_BW_UPDATES, MIN_DISTANCE_CHANGE_FOR_UPDATES, this);
-
-            // Getting Location.
-            myLocation = locationManager.getLastKnownLocation(locationProvider);
-        }
-        catch (SecurityException e) {
-            Toast.makeText(mContext, "Show My Location Error: " + e.getMessage(), Toast.LENGTH_LONG).show();
-            Log.e(MYTAG, "Show My Location Error:" + e.getMessage());
-            e.printStackTrace();
-            return;
-        }
-
-        if (myLocation != null) {
-            double latitude = myLocation.getLatitude();
-            double longitude = myLocation.getLongitude();
-            LatLng latLng = new LatLng(myLocation.getLatitude(), myLocation.getLongitude());
-            // Add Marker to Map
-            MarkerOptions option = new MarkerOptions();
-            option.title("My Location");
-            option.snippet("....");
-            option.position(latLng);
-            Marker currentMarker = mMap.addMarker(option);
-            currentMarker.showInfoWindow();
-
-            if (mPlacesApiService.getNearbyPlacesList() == null){
-                mPlacesApiService.setListPlaces(latitude,longitude, mMap);
-            }else {
-                showNearbyPlaces(mPlacesApiService.getNearbyPlacesList());
-            }
-
-        } else {
-            Toast.makeText(mContext, "Location not found!", Toast.LENGTH_LONG).show();
-            Log.i(MYTAG, "Location not found");
+        if (mPlacesApi.getNearbyPlaceModelList() == null){
+            mPlacesApi.setListPlaces(location.getLatitude(),location.getLongitude(), mMap);
+        }else {
+            showNearbyPlaces();
         }
     }
 
-    // Find Location provider is openning.
-    private String getEnabledLocationProvider() {
+    private void showNearbyPlaces() {
 
-        LocationManager locationManager = (LocationManager) mContext.getSystemService(LOCATION_SERVICE);
+        for (PlaceModel placeModel : mPlacesApi.getNearbyPlaceModelList()) {
 
-        // Criteria to find location provider.
-        Criteria criteria = new Criteria();
-
-        // Returns the name of the provider that best meets the given criteria.
-        // ==> "gps", "network",...
-        String bestProvider = locationManager.getBestProvider(criteria, true);
-
-        boolean enabled = locationManager.isProviderEnabled(bestProvider);
-
-        if (!enabled) {
-            Toast.makeText(mContext, "No location provider enabled!", Toast.LENGTH_LONG).show();
-            Log.i(MYTAG, "No location provider enabled!");
-            return null;
-        }
-        return bestProvider;
-    }
-
-    private void showNearbyPlaces(List<Places> nearbyPlacesList) {
-
-        for (Places places : nearbyPlacesList) {
             MarkerOptions markerOptions = new MarkerOptions();
 
-            String placeName = places.getName();
-            String vicinity = places.getAdresse();
-            double lat = Double.parseDouble( places.getLat() );
-            double lng = Double.parseDouble( places.getLongit() );
-
+            double lat = Double.parseDouble( placeModel.getLat() );
+            double lng = Double.parseDouble( placeModel.getLongit() );
             LatLng latLng = new LatLng( lat, lng);
+
             markerOptions.position(latLng);
-            markerOptions.title(placeName + "\n"+ vicinity);
+            markerOptions.title(placeModel.getName());
+            markerOptions.snippet(placeModel.getAdresse());
             markerOptions.icon(BitmapDescriptorFactory.defaultMarker());
 
-            mMap.addMarker(markerOptions);
+            Marker marker = mMap.addMarker(markerOptions);
+            marker.setTag(placeModel.getReference());
             mMap.moveCamera(CameraUpdateFactory.newLatLng(latLng));
             mMap.animateCamera(CameraUpdateFactory.zoomTo(10));
+            mMap.setOnInfoWindowClickListener(this);
         }
         myProgress.dismiss();
-    }
-
-    @Override
-    public void onLocationChanged(Location location) {
-
-    }
-
-    @Override
-    public void onStatusChanged(String s, int i, Bundle bundle) {
-
-    }
-
-    @Override
-    public void onProviderEnabled(String s) {
-
-    }
-
-    @Override
-    public void onProviderDisabled(String s) {
-
     }
 
     @Override
@@ -278,7 +193,20 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, Locatio
     }
 
     @Subscribe
-    public void onReceiveList(ReceiveListePlace event){
-        showNearbyPlaces(event.mNearbyPlacesList);
+    public void onReceiveList(ReceiveListPlace event){
+        showNearbyPlaces();
+    }
+
+    @Override
+    public void onLocationChanged(Location location) {
+        setNearbyPlaces(location);
+    }
+
+
+    @Override
+    public void onInfoWindowClick(Marker marker) {
+        Intent detailIntent = new Intent(this.getContext(), DetailPlaceActivity.class);
+        detailIntent.putExtra(PLACEREFERENCE,marker.getTag().toString());
+        this.getContext().startActivity(detailIntent);
     }
 }
