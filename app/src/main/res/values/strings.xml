@@ -138,5 +138,7 @@
     <string name="call">CALL</string>
     <string name="like">LIKE</string>
     <string name="website">WEBSITE</string>
+    <string name="adresse">French restaurant - 3 route de la Couarde</string>
+    <string name="la_maison">la maison</string>
 
 </resources>

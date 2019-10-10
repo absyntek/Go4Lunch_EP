@@ -5,6 +5,7 @@ import com.EtiennePriou.go4launch.models.PlaceModel;
 import com.EtiennePriou.go4launch.models.Workmate;
 import com.EtiennePriou.go4launch.services.firebase.UserHelper;
 import com.bumptech.glide.Glide;
+import com.google.android.material.appbar.CollapsingToolbarLayout;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import androidx.appcompat.widget.Toolbar;
@@ -29,9 +30,11 @@ public class DetailPlaceActivity extends BaseActivity {
     private static final String PLACEREFERENCE = "placeReference";
 
     private ImageView mimgDetailTop, mimgNoOne;
-    private TextView mtvName, mtvAdresse, mtvNoOne;
+    private TextView mtvNoOne;
     private Button mbtnCall, mbtnLike, mbtnWebsite;
+    private CollapsingToolbarLayout imgToolBar;
     private RecyclerView mRecyclerView;
+    private Toolbar toolbar;
 
     private List<Workmate> mWorkmatesThisPlace;
 
@@ -50,13 +53,12 @@ public class DetailPlaceActivity extends BaseActivity {
         mimgNoOne = findViewById(R.id.imgNoOne);
         mimgDetailTop = findViewById(R.id.imgDetailsTop);
         mtvNoOne = findViewById(R.id.tvNoOne);
-        mtvName = findViewById(R.id.tvName_detail);
-        mtvAdresse = findViewById(R.id.tvAdresseDetails);
         mbtnCall = findViewById(R.id.btnCall);
         mbtnLike = findViewById(R.id.btnLike);
         mbtnWebsite = findViewById(R.id.btnWebsite);
+        imgToolBar = findViewById(R.id.toolbar_layout_details);
         mRecyclerView = findViewById(R.id.recyclerviewDetails);
-        Toolbar toolbar = findViewById(R.id.toolbar);
+        toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         FloatingActionButton fab = findViewById(R.id.fab);
 
@@ -94,8 +96,8 @@ public class DetailPlaceActivity extends BaseActivity {
         if (mPlaceModel.getImgReference() != null){
             Glide.with(mimgDetailTop).load(mPlaceModel.getPhotoUri()).into(mimgDetailTop);
         }
-        mtvName.setText(mPlaceModel.getName());
-        mtvAdresse.setText(mPlaceModel.getAdresse());
+        toolbar.setTitle(mPlaceModel.getName());
+        toolbar.setSubtitle(mPlaceModel.getAdresse());
     }
 
     private void setUpRecyclerView (){

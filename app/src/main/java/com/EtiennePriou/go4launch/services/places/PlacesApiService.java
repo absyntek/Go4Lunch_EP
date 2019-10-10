@@ -1,9 +1,12 @@
 package com.EtiennePriou.go4launch.services.places;
 
+import android.content.Context;
+
 import com.EtiennePriou.go4launch.BuildConfig;
 import com.EtiennePriou.go4launch.models.PlaceModel;
 import com.EtiennePriou.go4launch.utils.GetNearbyPlacesData;
 import com.google.android.gms.maps.GoogleMap;
+import com.google.android.libraries.places.api.net.PlacesClient;
 
 import java.util.List;
 
@@ -14,6 +17,7 @@ public class PlacesApiService implements PlacesApi {
     private Integer proximity_radius = 10000;
     private List<PlaceModel> mNearbyPlaceModelList = null;
     private String urlNearbyPlace;
+    PlacesClient mPlacesClient;
 
     // ---- SETTERS ---- //
     @Override
@@ -38,7 +42,7 @@ public class PlacesApiService implements PlacesApi {
         googlePlaceUrl.append("&radius="+ proximity_radius);
         googlePlaceUrl.append("&type=restaurant");
         googlePlaceUrl.append("&sensor=true");
-        googlePlaceUrl.append("&key=" + BuildConfig.PlaceApiKey); //TODO Check this
+        googlePlaceUrl.append("&key=" + BuildConfig.PlaceApiKey);
 
         this.urlNearbyPlace = googlePlaceUrl.toString();
     }
@@ -50,6 +54,11 @@ public class PlacesApiService implements PlacesApi {
         placeDetails.append("&key=" + BuildConfig.PlaceApiKey);
 
         String urlPlaceDetails = placeDetails.toString();
+    }
+
+    @Override
+    public void setPlacesClient(Context context) {
+
     }
 
 
@@ -70,6 +79,11 @@ public class PlacesApiService implements PlacesApi {
             }
         }
         return null;
+    }
+
+    @Override
+    public PlacesClient getPlacesClient() {
+        return mPlacesClient;
     }
 
     // ---- UTLIS ---- //

@@ -1,5 +1,6 @@
 package com.EtiennePriou.go4launch.ui;
 
+import com.EtiennePriou.go4launch.BuildConfig;
 import com.EtiennePriou.go4launch.R;
 import com.EtiennePriou.go4launch.base.BaseActivity;
 import com.EtiennePriou.go4launch.ui.fragments.MapFragment;
@@ -7,6 +8,7 @@ import com.EtiennePriou.go4launch.ui.fragments.place_view.PlaceFragment;
 import com.EtiennePriou.go4launch.ui.fragments.workmates_list.WorkmateFragment;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.RequestOptions;
+import com.google.android.libraries.places.api.Places;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 import androidx.annotation.NonNull;
@@ -92,8 +94,13 @@ public class MainActivity extends BaseActivity
     protected void withOnCreate() {
         FirebaseAuth auth = FirebaseAuth.getInstance();
         FirebaseUser currentUser = auth.getCurrentUser();
-        if (currentUser != null)setupMenuInfo(currentUser);
-        if (mFireBaseApi.getWorkmatesList() == null) mFireBaseApi.updateWorkmatesList(currentUser);
+        Places.initialize(this.getApplicationContext(), BuildConfig.PlaceApiKey);
+        if (currentUser != null){
+            mFireBaseApi.setCurrentUser(currentUser);
+            setupMenuInfo(currentUser);
+        }
+
+        if (mFireBaseApi.getWorkmatesList() == null) mFireBaseApi.updateWorkmatesList();
         showFragment(MapFragment.newInstance());
     }
 

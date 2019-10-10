@@ -15,43 +15,59 @@
         android:fitsSystemWindows="true"
         android:theme="@style/AppTheme.AppBarOverlay">
 
+
         <com.google.android.material.appbar.CollapsingToolbarLayout
             android:id="@+id/toolbar_layout_details"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:fitsSystemWindows="true"
+            android:background="@drawable/food_flou"
+            android:scaleType="centerCrop"
+
             app:contentScrim="?attr/colorPrimary"
             app:layout_scrollFlags="scroll|exitUntilCollapsed"
             app:toolbarId="@+id/toolbar">
 
             <ImageView
                 android:id="@+id/imgDetailsTop"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
                 android:scaleType="centerCrop"
                 app:srcCompat="@drawable/food_flou" />
 
             <androidx.appcompat.widget.Toolbar
                 android:id="@+id/toolbar"
                 android:layout_width="match_parent"
-                android:layout_height="?attr/actionBarSize"
+                android:layout_height="68dp"
+                android:layout_gravity="bottom"
+                android:background="@color/colorPrimary"
                 app:layout_collapseMode="pin"
-                app:popupTheme="@style/AppTheme.PopupOverlay" />
+                app:popupTheme="@style/AppTheme.PopupOverlay"
+                app:subtitle="@string/adresse"
+                app:subtitleTextColor="@color/quantum_white_100"
+                app:title="@string/la_maison"
+                app:titleTextAppearance="@style/TextAppearance.AppCompat.Medium"
+                app:titleTextColor="@color/quantum_white_100" />
 
         </com.google.android.material.appbar.CollapsingToolbarLayout>
 
     </com.google.android.material.appbar.AppBarLayout>
 
-    <include layout="@layout/content_details" />
+
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/fab"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_margin="@dimen/fab_margin"
+        app:layout_anchor="@id/toolbar"
+        app:layout_anchorGravity="right"
         app:backgroundTint="#F3F3F3"
-        app:layout_anchor="@id/app_bar"
-        app:layout_anchorGravity="bottom|end"
         app:srcCompat="@drawable/fui_ic_check_circle_black_128dp" />
+
+    <include
+        android:id="@+id/include"
+        app:layout_anchorGravity="bottom"
+        layout="@layout/content_details" />
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

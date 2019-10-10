@@ -53,9 +53,6 @@ import com.google.android.libraries.places.api.net.PlacesClient;
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 
-import java.lang.reflect.Array;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
@@ -143,10 +140,8 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, Locatio
         fusedLocationClient.getLastLocation().addOnSuccessListener(new OnSuccessListener<Location>() {
             @Override
             public void onSuccess(Location location) {
-                if (location != null){
-                    setNearbyPlaces(location);
-                    getPlacesAround();
-                }
+                setNearbyPlaces(location);
+                //getPlacesAround();
             }
         });
     }
@@ -169,10 +164,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, Locatio
 
     private void getPlacesAround(){
         // Use fields to define the data types to return.
-        List<Place.Field> placeFields = Arrays.asList(
-                Place.Field.NAME,
-                Place.Field.TYPES, //TODO changer en restaurant
-                Place.Field.LAT_LNG);
+        List<Place.Field> placeFields = Collections.singletonList(Place.Field.NAME);
 
         // Use the builder to create a FindCurrentPlaceRequest.
         FindCurrentPlaceRequest request =
@@ -208,7 +200,6 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, Locatio
     private void setNearbyPlaces(Location location) {
 
         if (mPlacesApi.getNearbyPlaceModelList() == null){
-            double test = location.getLatitude();
             mPlacesApi.setListPlaces(location.getLatitude(),location.getLongitude(), mMap);
         }else {
             showNearbyPlaces();

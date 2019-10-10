@@ -67,6 +67,7 @@ public class SplashActivity extends AppCompatActivity {
         startActivityForResult(
                 AuthUI.getInstance()
                         .createSignInIntentBuilder()
+                        .setIsSmartLockEnabled(false)
                         .setAvailableProviders(providers)
                         .setLogo(R.drawable.logo_200x200)
                         .setTheme(R.style.connect)

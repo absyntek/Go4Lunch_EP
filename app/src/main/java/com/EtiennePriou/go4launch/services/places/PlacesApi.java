@@ -1,7 +1,10 @@
 package com.EtiennePriou.go4launch.services.places;
 
+import android.content.Context;
+
 import com.EtiennePriou.go4launch.models.PlaceModel;
 import com.google.android.gms.maps.GoogleMap;
+import com.google.android.libraries.places.api.net.PlacesClient;
 
 import java.util.List;
 
@@ -19,6 +22,8 @@ public interface PlacesApi {
 
     void setUrlPlaceDetails(String placeId);
 
+    void setPlacesClient (Context context);
+
 
 
     Integer getProximity_radius();
@@ -26,4 +31,6 @@ public interface PlacesApi {
     List<PlaceModel> getNearbyPlaceModelList();
 
     PlaceModel getPlaceByReference(String reference);
+
+    PlacesClient getPlacesClient ();
 }
