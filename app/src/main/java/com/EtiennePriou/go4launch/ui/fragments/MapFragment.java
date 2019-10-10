@@ -190,6 +190,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, Locatio
                             Log.i(TAG, String.format("Place '%s' has likelihood: %f",
                                     placeLikelihood.getPlace().getName(),
                                     placeLikelihood.getLikelihood()));
+                            placeLikelihood.getPlace().getTypes();
                         }
                     } else {
                         Exception exception = task.getException();

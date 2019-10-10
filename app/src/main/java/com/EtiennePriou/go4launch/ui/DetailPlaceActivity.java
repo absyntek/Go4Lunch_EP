@@ -5,14 +5,19 @@ import com.EtiennePriou.go4launch.models.PlaceModel;
 import com.EtiennePriou.go4launch.models.Workmate;
 import com.EtiennePriou.go4launch.services.firebase.UserHelper;
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.request.target.CustomTarget;
+import com.bumptech.glide.request.transition.Transition;
 import com.google.android.material.appbar.CollapsingToolbarLayout;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.widget.Toolbar;
 import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.graphics.drawable.Drawable;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
@@ -32,9 +37,9 @@ public class DetailPlaceActivity extends BaseActivity {
     private ImageView mimgDetailTop, mimgNoOne;
     private TextView mtvNoOne;
     private Button mbtnCall, mbtnLike, mbtnWebsite;
-    private CollapsingToolbarLayout imgToolBar;
     private RecyclerView mRecyclerView;
     private Toolbar toolbar;
+    private CollapsingToolbarLayout imgDetails;
 
     private List<Workmate> mWorkmatesThisPlace;
 
@@ -51,12 +56,11 @@ public class DetailPlaceActivity extends BaseActivity {
     protected void setupUi() {
 
         mimgNoOne = findViewById(R.id.imgNoOne);
-        mimgDetailTop = findViewById(R.id.imgDetailsTop);
+        imgDetails = findViewById(R.id.toolbar_layout_details);
         mtvNoOne = findViewById(R.id.tvNoOne);
         mbtnCall = findViewById(R.id.btnCall);
         mbtnLike = findViewById(R.id.btnLike);
         mbtnWebsite = findViewById(R.id.btnWebsite);
-        imgToolBar = findViewById(R.id.toolbar_layout_details);
         mRecyclerView = findViewById(R.id.recyclerviewDetails);
         toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -92,12 +96,23 @@ public class DetailPlaceActivity extends BaseActivity {
         }
     }
 
-    private void updateUi(){
-        if (mPlaceModel.getImgReference() != null){
-            Glide.with(mimgDetailTop).load(mPlaceModel.getPhotoUri()).into(mimgDetailTop);
+    private void updateUi() {
+        if (mPlaceModel.getImgReference() != null) {
+            Glide.with(this).load(mPlaceModel.getPhotoUri()).into(new CustomTarget<Drawable>() {
+                @Override
+                public void onResourceReady(@NonNull Drawable resource, @Nullable Transition<? super Drawable> transition) {
+                    imgDetails.setBackground(resource);
+                }
+
+                @Override
+                public void onLoadCleared(@Nullable Drawable placeholder) {
+
+                }
+            });
         }
         toolbar.setTitle(mPlaceModel.getName());
         toolbar.setSubtitle(mPlaceModel.getAdresse());
+
     }
 
     private void setUpRecyclerView (){
