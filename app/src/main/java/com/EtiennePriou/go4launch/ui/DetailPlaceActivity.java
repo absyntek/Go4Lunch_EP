@@ -95,7 +95,9 @@ public class DetailPlaceActivity extends BaseActivity {
                                 .addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
                             @Override
                             public void onSuccess(DocumentSnapshot documentSnapshot) {
-                                mWorkmatesThisPlace.add(documentSnapshot.toObject(Workmate.class));
+                                if (!documentSnapshot.get("uid").equals(currentUser.getUid())){
+                                    mWorkmatesThisPlace.add(documentSnapshot.toObject(Workmate.class));
+                                }
                                 impToFinish++; //TODO change this
                                 if (impToFinish == forFinish){ setUpRecyclerView(); }
                             }

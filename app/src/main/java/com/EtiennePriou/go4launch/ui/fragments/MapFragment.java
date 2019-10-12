@@ -53,10 +53,7 @@ import com.google.android.libraries.places.api.net.PlacesClient;
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 
-import java.lang.reflect.Array;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
@@ -90,7 +87,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, Locatio
         super.onCreate(savedInstanceState);
         mContext = getContext();
         mPlacesApi = DI.getServiceApiPlaces();
-        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this.getContext());
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(Objects.requireNonNull(this.getContext()));
 
         //Configure PlacesClient
         placesClient = Places.createClient(mContext);
@@ -171,7 +168,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, Locatio
         // Use fields to define the data types to return.
         List<Place.Field> placeFields = Arrays.asList(
                 Place.Field.NAME,
-                Place.Field.TYPES, //TODO changer en restaurant
+                Place.Field.TYPES,
                 Place.Field.LAT_LNG);
 
         // Use the builder to create a FindCurrentPlaceRequest.
@@ -186,6 +183,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, Locatio
                 public void onComplete(@NonNull Task<FindCurrentPlaceResponse> task) {
                     if (task.isSuccessful()) {
                         FindCurrentPlaceResponse response = task.getResult();
+                        assert response != null;
                         for (PlaceLikelihood placeLikelihood : response.getPlaceLikelihoods()) {
                             Log.i(TAG, String.format("Place '%s' has likelihood: %f",
                                     placeLikelihood.getPlace().getName(),
@@ -209,7 +207,6 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, Locatio
     private void setNearbyPlaces(Location location) {
 
         if (mPlacesApi.getNearbyPlaceModelList() == null){
-            double test = location.getLatitude();
             mPlacesApi.setListPlaces(location.getLatitude(),location.getLongitude(), mMap);
         }else {
             showNearbyPlaces();
@@ -266,7 +263,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, Locatio
     @Override
     public void onInfoWindowClick(Marker marker) {
         Intent detailIntent = new Intent(this.getContext(), DetailPlaceActivity.class);
-        detailIntent.putExtra(PLACEREFERENCE,marker.getTag().toString());
-        this.getContext().startActivity(detailIntent);
+        detailIntent.putExtra(PLACEREFERENCE, Objects.requireNonNull(marker.getTag()).toString());
+        Objects.requireNonNull(this.getContext()).startActivity(detailIntent);
     }
 }
