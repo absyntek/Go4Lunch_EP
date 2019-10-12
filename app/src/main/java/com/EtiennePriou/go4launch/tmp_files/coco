@@ -12,7 +12,7 @@ import android.widget.Button;
 import android.widget.Toast;
 
 import com.EtiennePriou.go4launch.base.BaseActivity;
-import com.EtiennePriou.go4launch.services.firebase.UserHelper;
+import com.EtiennePriou.go4launch.services.firebase.helpers.UserHelper;
 import com.EtiennePriou.go4launch.ui.MainActivity;
 import com.facebook.AccessToken;
 import com.facebook.CallbackManager;

@@ -17,8 +17,11 @@ import com.EtiennePriou.go4launch.di.DI;
 import com.EtiennePriou.go4launch.models.PlaceModel;
 import com.EtiennePriou.go4launch.models.Workmate;
 import com.EtiennePriou.go4launch.services.firebase.FireBaseApi;
+import com.EtiennePriou.go4launch.services.firebase.helpers.PlaceHelper;
 import com.EtiennePriou.go4launch.ui.DetailPlaceActivity;
 import com.bumptech.glide.Glide;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.firebase.firestore.QuerySnapshot;
 
 import java.util.List;
 
@@ -26,6 +29,7 @@ public class MyPlaceRecyclerViewAdapter extends RecyclerView.Adapter<MyPlaceRecy
 
     private final List<PlaceModel> mPlaceModelList;
     private Context mContext;
+    private int nbrWhoComing;
     private static final String PLACEREFERENCE = "placeReference";
 
     MyPlaceRecyclerViewAdapter(List<PlaceModel> items) {
@@ -71,19 +75,15 @@ public class MyPlaceRecyclerViewAdapter extends RecyclerView.Adapter<MyPlaceRecy
             }
         }
 
-        // -- Check number of workmates wich are comming to this place --
-        int nbrWorkmate = 0;
-        FireBaseApi fireBaseApi = DI.getServiceFireBase();
-        for (Workmate workmate : fireBaseApi.getWorkmatesList()){
-            if (workmate.getPlaceToGo() != null && workmate.getPlaceToGo().equals(placeModel.getReference())){
-                ++nbrWorkmate;
+        // -- Check number of workmates who coming to this place --
+        PlaceHelper
+                .getWhoComing(placeModel.getReference())
+                .addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
+            @Override
+            public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
+                holder.mtvNbrWorkmates.setText(queryDocumentSnapshots.size());
             }
-        }
-        if (fireBaseApi.getActualUser().getPlaceToGo() != null && fireBaseApi.getActualUser().getPlaceToGo().equals(placeModel.getReference())){
-            ++nbrWorkmate;
-        }
-        String workmatecomming = "(" + nbrWorkmate + ")";
-        holder.mtvNbrWorkmates.setText(workmatecomming);
+        });
 
         // -- set listener for opening detail activity --
         holder.mView.setOnClickListener(new View.OnClickListener() {
@@ -92,6 +92,14 @@ public class MyPlaceRecyclerViewAdapter extends RecyclerView.Adapter<MyPlaceRecy
                 Intent intent = new Intent(view.getContext(), DetailPlaceActivity.class);
                 intent.putExtra(PLACEREFERENCE, placeModel.getReference());
                 view.getContext().startActivity(intent);
+            }
+        });
+    }
+
+    private void checkWhoComing (String placeRef){
+        PlaceHelper.getWhoComing(placeRef).addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
+            @Override
+            public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
             }
         });
     }

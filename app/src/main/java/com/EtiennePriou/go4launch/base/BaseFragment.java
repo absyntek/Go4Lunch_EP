@@ -1,6 +1,5 @@
 package com.EtiennePriou.go4launch.base;
 
-import android.content.Context;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -15,7 +14,6 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.EtiennePriou.go4launch.di.DI;
 import com.EtiennePriou.go4launch.services.firebase.FireBaseApi;
-import com.EtiennePriou.go4launch.services.firebase.UserHelper;
 import com.EtiennePriou.go4launch.services.places.PlacesApi;
 
 public abstract class BaseFragment extends Fragment {

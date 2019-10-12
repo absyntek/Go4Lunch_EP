@@ -1,4 +1,4 @@
-package com.EtiennePriou.go4launch.services.firebase;
+package com.EtiennePriou.go4launch.services.firebase.helpers;
 
 import com.EtiennePriou.go4launch.models.Workmate;
 import com.google.android.gms.tasks.Task;
@@ -30,7 +30,7 @@ public class UserHelper {
 
     public static Task<Void> createUser(String uid, String username, String urlPicture) {
         List<String> favoritePlaces = new ArrayList<>();
-        Workmate userToCreate = new Workmate(uid, username, urlPicture, "abc", favoritePlaces);
+        Workmate userToCreate = new Workmate(uid, username, urlPicture, null);
         return UserHelper.getUsersCollection().document(uid).set(userToCreate);
     }
 

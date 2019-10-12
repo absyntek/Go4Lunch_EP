@@ -27,43 +27,6 @@ public class FireBaseApiService implements FireBaseApi{
     private Workmate actualUser = null;
     private FirebaseUser currentUser;
 
-
-    // ------------- PLACES TO GO ----------------
-
-    public static CollectionReference getPlacesToGoCollection(){
-        return FirebaseFirestore.getInstance().collection("placesToGo");
-    }
-
-    // --- CREATE ---
-
-    public static Task<Void> createUser(String placeRef, String userRef) {
-        return getPlacesToGoCollection().document(placeRef).set(userRef);
-    }
-
-    // --- GET ---
-
-    public static Task<DocumentSnapshot> getPlacesToGo(String uid){
-        return getPlacesToGoCollection().document(uid).get();
-    }
-
-    // --- UPDATE ---
-
-    public static Task<Void> updateUsername(String username, String uid) {
-        return getPlacesToGoCollection().document(uid).update("username", username);
-    }
-
-    // --- DELETE ---
-
-    public static Task<Void> deleteUser(String uid) {
-        return getPlacesToGoCollection().document(uid).delete();
-    }
-
-
-
-
-
-
-
     public FirebaseUser getCurrentUser() {
         return currentUser;
     }

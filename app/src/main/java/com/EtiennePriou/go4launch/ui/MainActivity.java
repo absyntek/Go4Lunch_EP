@@ -3,11 +3,13 @@ package com.EtiennePriou.go4launch.ui;
 import com.EtiennePriou.go4launch.BuildConfig;
 import com.EtiennePriou.go4launch.R;
 import com.EtiennePriou.go4launch.base.BaseActivity;
+import com.EtiennePriou.go4launch.services.firebase.helpers.UserHelper;
 import com.EtiennePriou.go4launch.ui.fragments.MapFragment;
 import com.EtiennePriou.go4launch.ui.fragments.place_view.PlaceFragment;
 import com.EtiennePriou.go4launch.ui.fragments.workmates_list.WorkmateFragment;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.RequestOptions;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.libraries.places.api.Places;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
@@ -21,6 +23,7 @@ import android.view.MenuItem;
 import com.google.android.material.navigation.NavigationView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.DocumentSnapshot;
 
 import androidx.drawerlayout.widget.DrawerLayout;
 
@@ -37,6 +40,7 @@ import android.widget.TextView;
 public class MainActivity extends BaseActivity
         implements NavigationView.OnNavigationItemSelectedListener {
 
+    private static final String PLACEREFERENCE = "placeReference";
     private TextView mtv_Menu_Mail;
     private TextView mtv_Menu_Name;
     private ImageView imgMenuProfile;
@@ -127,21 +131,30 @@ public class MainActivity extends BaseActivity
     @Override
     public boolean onNavigationItemSelected(@NonNull MenuItem item) {
         // Handle navigation view item clicks here.
-        int id = item.getItemId();
-
-        if (id == R.id.nav_your_lunch) {
-            //TODO implement fragment map
-        } else if (id == R.id.nav_setting) {
-            Intent intentSetting = new Intent(this,SettingsActivity.class);
-            this.startActivity(intentSetting);
-
-        } else if (id == R.id.nav_logout) {
-            FirebaseAuth.getInstance().signOut();
-            this.finish();
+        switch (item.getItemId()){
+            case R.id.nav_your_lunch:
+                UserHelper.getUser(mFireBaseApi.getCurrentUser().getUid()).addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
+                    @Override
+                    public void onSuccess(DocumentSnapshot documentSnapshot) {
+                        if (documentSnapshot.get("placeToGo") != null){//TODO faire quelque chose si null
+                            Intent intent = new Intent(getApplicationContext(), DetailPlaceActivity.class);
+                            intent.putExtra(PLACEREFERENCE, documentSnapshot.get("placeToGo").toString());
+                            getApplication().startActivity(intent);
+                        }
+                    }
+                });
+            case R.id.nav_setting:
+                Intent intentSetting = new Intent(this,SettingsActivity.class);
+                this.startActivity(intentSetting);
+            case R.id.nav_logout:
+                FirebaseAuth.getInstance().signOut();
+                this.finish();
         }
+
         DrawerLayout drawer = findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
         return true;
+
     }
 
     private void showFragment(Fragment fragment) {

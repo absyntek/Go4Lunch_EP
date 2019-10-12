@@ -1,4 +1,4 @@
-package com.EtiennePriou.go4launch.services.firebase;
+package com.EtiennePriou.go4launch.services.firebase.helpers;
 
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.FirebaseFirestore;

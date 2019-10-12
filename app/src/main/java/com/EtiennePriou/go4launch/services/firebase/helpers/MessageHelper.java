@@ -1,5 +1,6 @@
-package com.EtiennePriou.go4launch.services.firebase;
+package com.EtiennePriou.go4launch.services.firebase.helpers;
 
+import com.EtiennePriou.go4launch.services.firebase.helpers.ChatHelper;
 import com.google.firebase.firestore.Query;
 
 public class MessageHelper {
