@@ -29,7 +29,6 @@ public class MyPlaceRecyclerViewAdapter extends RecyclerView.Adapter<MyPlaceRecy
 
     private final List<PlaceModel> mPlaceModelList;
     private Context mContext;
-    private int nbrWhoComing;
     private static final String PLACEREFERENCE = "placeReference";
 
     MyPlaceRecyclerViewAdapter(List<PlaceModel> items) {
@@ -81,7 +80,8 @@ public class MyPlaceRecyclerViewAdapter extends RecyclerView.Adapter<MyPlaceRecy
                 .addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
             @Override
             public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
-                holder.mtvNbrWorkmates.setText(queryDocumentSnapshots.size());
+                int nmbWork = queryDocumentSnapshots.size();
+                holder.mtvNbrWorkmates.setText(String.valueOf(nmbWork));
             }
         });
 

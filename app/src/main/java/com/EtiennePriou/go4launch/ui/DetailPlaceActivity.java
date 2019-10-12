@@ -137,21 +137,28 @@ public class DetailPlaceActivity extends BaseActivity {
                     @Override
                     public void onSuccess(DocumentSnapshot documentSnapshot) {
                         currentUser = documentSnapshot.toObject(Workmate.class);
-                        if (currentUser.getPlaceToGo() == mPlaceModel.getReference()){
+                        if (currentUser.getPlaceToGo() != null && currentUser.getPlaceToGo().equals(mPlaceModel.getReference())){
                             //TODO change color
                         }
                         fab.setOnClickListener(new View.OnClickListener() {
                             @Override
                             public void onClick(View view) {
-                                if (currentUser.getPlaceToGo() == placeRef){
-                                    PlaceHelper.deleteUserWhoComming(mPlaceModel.getReference(),currentUser.getUid());
-                                    UserHelper.updatePlaceToGo(currentUser.getUid(),null);
-                                    //TODO Envoyer un petit message de confirmation
-                                }else{
-                                    PlaceHelper.createWhoComing(mPlaceModel.getReference(),currentUser.getUid());
-                                    UserHelper.updatePlaceToGo(currentUser.getUid(),mPlaceModel.getReference());
-                                    //TODO Envoyer un petit message de confirmation
-                                }
+                                UserHelper.getUser(FirebaseAuth.getInstance().getCurrentUser().getUid())
+                                        .addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
+                                            @Override
+                                            public void onSuccess(DocumentSnapshot documentSnapshot) {
+                                                currentUser = documentSnapshot.toObject(Workmate.class);
+                                                if (currentUser.getPlaceToGo() != null && currentUser.getPlaceToGo().equals(placeRef)){
+                                                    PlaceHelper.deleteUserWhoComming(mPlaceModel.getReference(),currentUser.getUid());
+                                                    UserHelper.updatePlaceToGo(currentUser.getUid(),null);
+                                                    //TODO Envoyer un petit message de confirmation
+                                                }else{
+                                                    PlaceHelper.createWhoComing(mPlaceModel.getReference(),currentUser.getUid());
+                                                    UserHelper.updatePlaceToGo(currentUser.getUid(),mPlaceModel.getReference());
+                                                    //TODO Envoyer un petit message de confirmation
+                                                }
+                                            }
+                                        });
                             }
                         });
                     }

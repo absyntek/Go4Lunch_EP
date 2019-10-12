@@ -139,16 +139,20 @@ public class MainActivity extends BaseActivity
                         if (documentSnapshot.get("placeToGo") != null){//TODO faire quelque chose si null
                             Intent intent = new Intent(getApplicationContext(), DetailPlaceActivity.class);
                             intent.putExtra(PLACEREFERENCE, documentSnapshot.get("placeToGo").toString());
+                            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                             getApplication().startActivity(intent);
                         }
                     }
                 });
+                break;
             case R.id.nav_setting:
                 Intent intentSetting = new Intent(this,SettingsActivity.class);
                 this.startActivity(intentSetting);
+                break;
             case R.id.nav_logout:
                 FirebaseAuth.getInstance().signOut();
                 this.finish();
+                break;
         }
 
         DrawerLayout drawer = findViewById(R.id.drawer_layout);

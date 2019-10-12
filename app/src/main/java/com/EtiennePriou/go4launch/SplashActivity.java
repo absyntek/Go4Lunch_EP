@@ -18,9 +18,12 @@ import com.EtiennePriou.go4launch.services.firebase.helpers.UserHelper;
 import com.EtiennePriou.go4launch.ui.MainActivity;
 import com.firebase.ui.auth.AuthUI;
 import com.firebase.ui.auth.IdpResponse;
+import com.firebase.ui.auth.data.model.User;
 import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.DocumentSnapshot;
 
 import java.util.Arrays;
 import java.util.List;
@@ -29,6 +32,7 @@ import java.util.Objects;
 public class SplashActivity extends AppCompatActivity {
 
     private static final int RC_SIGN_IN = 123;
+    private FirebaseUser user;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -86,9 +90,8 @@ public class SplashActivity extends AppCompatActivity {
 
             if (resultCode == RESULT_OK) {
                 // Successfully signed in
-                @NonNull
-                FirebaseUser user = Objects.requireNonNull(FirebaseAuth.getInstance().getCurrentUser());
-                createUserInFirestore(user);
+                user = Objects.requireNonNull(FirebaseAuth.getInstance().getCurrentUser());
+                createUserInFirestore();
                 startMainActivity();
             } else {
                 //TODO check if connection or somethings
@@ -97,13 +100,19 @@ public class SplashActivity extends AppCompatActivity {
     }
 
 
-    private void createUserInFirestore(FirebaseUser user){
+    private void createUserInFirestore(){
 
-        String urlPicture = (user.getPhotoUrl() != null) ? user.getPhotoUrl().toString() : null;
-        String username = user.getDisplayName();
-        String uid = user.getUid();
-
-        UserHelper.createUser(uid, username, urlPicture).addOnFailureListener(this.onFailureListener());
+        UserHelper.getUser(user.getUid()).addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
+            @Override
+            public void onSuccess(DocumentSnapshot documentSnapshot) {
+                if (documentSnapshot.get("uid") == null || !documentSnapshot.get("uid").equals(user.getUid())){
+                    String urlPicture = (user.getPhotoUrl() != null) ? user.getPhotoUrl().toString() : null;
+                    String username = user.getDisplayName();
+                    String uid = user.getUid();
+                    UserHelper.createUser(uid, username, urlPicture).addOnFailureListener(onFailureListener());
+                }
+            }
+        });
     }
 
     private OnFailureListener onFailureListener(){
