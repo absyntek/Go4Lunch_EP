@@ -13,14 +13,16 @@ import com.EtiennePriou.go4launch.R;
 import com.EtiennePriou.go4launch.models.Workmate;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.RequestOptions;
+import com.google.firebase.auth.FirebaseAuth;
 
+import java.util.Arrays;
 import java.util.List;
 
 public class MyWorkmateRecyclerViewAdapter extends RecyclerView.Adapter<MyWorkmateRecyclerViewAdapter.ViewHolder>{
 
     private List<Workmate> mWorkmates;
 
-    MyWorkmateRecyclerViewAdapter(List<Workmate> workmates) { mWorkmates = workmates; }
+    public MyWorkmateRecyclerViewAdapter(List<Workmate> workmates) { mWorkmates = workmates; }
 
     @NonNull
     @Override
@@ -41,6 +43,19 @@ public class MyWorkmateRecyclerViewAdapter extends RecyclerView.Adapter<MyWorkma
                 .load(workmate.getUrlPicture())
                 .apply(RequestOptions.circleCropTransform())
                 .into(holder.workmateImage);
+
+        holder.btnChat.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                String[] test = new String[] {
+                        workmate.getUid(),
+                        FirebaseAuth.getInstance().getUid()
+                };
+                Arrays.sort(test);
+                final String chatTocken = test[0] + test[1];
+
+            }
+        });
     }
 
     @Override
@@ -52,12 +67,14 @@ public class MyWorkmateRecyclerViewAdapter extends RecyclerView.Adapter<MyWorkma
 
         TextView workmateName;
         ImageView workmateImage;
+        ImageView btnChat;
 
         ViewHolder(@NonNull View itemView) {
             super(itemView);
 
             workmateName =itemView.findViewById(R.id.tvWorkemate);
             workmateImage = itemView.findViewById(R.id.imgWorkmate);
+            btnChat = itemView.findViewById(R.id.imgChat);
         }
     }
 }

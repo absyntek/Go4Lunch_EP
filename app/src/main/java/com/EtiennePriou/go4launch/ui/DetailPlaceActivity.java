@@ -5,6 +5,7 @@ import com.EtiennePriou.go4launch.models.PlaceModel;
 import com.EtiennePriou.go4launch.models.Workmate;
 import com.EtiennePriou.go4launch.services.firebase.helpers.PlaceHelper;
 import com.EtiennePriou.go4launch.services.firebase.helpers.UserHelper;
+import com.EtiennePriou.go4launch.ui.fragments.workmates_list.MyWorkmateRecyclerViewAdapter;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.target.CustomTarget;
 import com.bumptech.glide.request.transition.Transition;
@@ -27,12 +28,12 @@ import android.widget.TextView;
 
 import com.EtiennePriou.go4launch.R;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 public class DetailPlaceActivity extends BaseActivity {
 
@@ -91,11 +92,11 @@ public class DetailPlaceActivity extends BaseActivity {
                 if (!queryDocumentSnapshots.getDocuments().isEmpty()){
                     final int forFinish = queryDocumentSnapshots.size();
                     for (DocumentSnapshot userRef : queryDocumentSnapshots.getDocuments()){
-                        UserHelper.getUser(userRef.get("userRef").toString())
+                        UserHelper.getUser(Objects.requireNonNull(userRef.get("userRef")).toString())
                                 .addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
                             @Override
                             public void onSuccess(DocumentSnapshot documentSnapshot) {
-                                if (!documentSnapshot.get("uid").equals(currentUser.getUid())){
+                                if (!Objects.equals(documentSnapshot.get("uid"), currentUser.getUid())){
                                     mWorkmatesThisPlace.add(documentSnapshot.toObject(Workmate.class));
                                 }
                                 impToFinish++; //TODO change this
@@ -130,17 +131,17 @@ public class DetailPlaceActivity extends BaseActivity {
     private void setUpRecyclerView (){
         mRecyclerView.setLayoutManager(new LinearLayoutManager(this));
         mRecyclerView.addItemDecoration(new DividerItemDecoration(this, DividerItemDecoration.VERTICAL));
-        mRecyclerView.setAdapter(new DetailPlaceActivityRecyclerViewAdapter(mWorkmatesThisPlace));
+        mRecyclerView.setAdapter(new MyWorkmateRecyclerViewAdapter(mWorkmatesThisPlace));
     }
 
     private void setFabButton (){
-        UserHelper.getUser(FirebaseAuth.getInstance().getCurrentUser().getUid())
+        UserHelper.getUser(Objects.requireNonNull(FirebaseAuth.getInstance().getCurrentUser()).getUid())
                 .addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
                     @Override
                     public void onSuccess(DocumentSnapshot documentSnapshot) {
                         currentUser = documentSnapshot.toObject(Workmate.class);
                         if (currentUser.getPlaceToGo() != null && currentUser.getPlaceToGo().equals(mPlaceModel.getReference())){
-                            //TODO change color
+                            //TODO fab change color
                         }
                         fab.setOnClickListener(new View.OnClickListener() {
                             @Override

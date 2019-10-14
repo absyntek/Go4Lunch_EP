@@ -3,6 +3,8 @@ package com.EtiennePriou.go4launch.ui;
 import com.EtiennePriou.go4launch.BuildConfig;
 import com.EtiennePriou.go4launch.R;
 import com.EtiennePriou.go4launch.base.BaseActivity;
+import com.EtiennePriou.go4launch.di.DI;
+import com.EtiennePriou.go4launch.di.ViewModelFactory;
 import com.EtiennePriou.go4launch.services.firebase.helpers.UserHelper;
 import com.EtiennePriou.go4launch.ui.fragments.MapFragment;
 import com.EtiennePriou.go4launch.ui.fragments.place_view.PlaceFragment;
@@ -30,16 +32,20 @@ import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.appcompat.widget.Toolbar;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
+import androidx.lifecycle.ViewModelProvider;
+import androidx.lifecycle.ViewModelProviders;
 
 import android.view.View;
-import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.TextView;
+
+import java.util.Objects;
 
 
 public class MainActivity extends BaseActivity
         implements NavigationView.OnNavigationItemSelectedListener {
 
+    private MainViewModel mMainViewModel;
     private static final String PLACEREFERENCE = "placeReference";
     private TextView mtv_Menu_Mail;
     private TextView mtv_Menu_Name;
@@ -52,13 +58,22 @@ public class MainActivity extends BaseActivity
         public boolean onNavigationItemSelected(@NonNull MenuItem item) {
             switch (item.getItemId()) {
                 case R.id.navigation_map:
-                    showFragment(MapFragment.newInstance());
+                    if (mMainViewModel.mFragments[0] == null){
+                        mMainViewModel.mFragments[0] = MapFragment.newInstance();
+                        showFragment(mMainViewModel.mFragments[0]);
+                    }else showFragment(mMainViewModel.mFragments[0]);
                     return true;
                 case R.id.navigation_list_view:
-                    showFragment(PlaceFragment.newInstance());
+                    if (mMainViewModel.mFragments[1] == null){
+                        mMainViewModel.mFragments[1] = PlaceFragment.newInstance();
+                        showFragment(mMainViewModel.mFragments[1]);
+                    }else showFragment(mMainViewModel.mFragments[1]);
                     return true;
                 case R.id.navigation_workmates:
-                    showFragment(WorkmateFragment.newInstance());
+                    if (mMainViewModel.mFragments[2] == null){
+                        mMainViewModel.mFragments[2] = WorkmateFragment.newInstance();
+                        showFragment(mMainViewModel.mFragments[2]);
+                    }else showFragment(mMainViewModel.mFragments[2]);
                     return true;
             }
             return false;
@@ -77,7 +92,6 @@ public class MainActivity extends BaseActivity
         DrawerLayout drawer = findViewById(R.id.drawer_layout);
         Toolbar toolbar = findViewById(R.id.toolbar);
         bottomNavigationView = findViewById(R.id.bottom_nav_view);
-        FrameLayout frameLayout = findViewById(R.id.container);
 
         View headerView = navigationView.getHeaderView(0);
         imgMenuProfile = headerView.findViewById(R.id.img_menu_profile);
@@ -96,8 +110,10 @@ public class MainActivity extends BaseActivity
 
     @Override
     protected void withOnCreate() {
+        configureViewModel();
         FirebaseAuth auth = FirebaseAuth.getInstance();
         FirebaseUser currentUser = auth.getCurrentUser();
+        currentUser.getEmail();
         Places.initialize(this.getApplicationContext(), BuildConfig.PlaceApiKey);
         if (currentUser != null){
             mFireBaseApi.setCurrentUser(currentUser);
@@ -106,6 +122,11 @@ public class MainActivity extends BaseActivity
 
         if (mFireBaseApi.getWorkmatesList() == null) mFireBaseApi.updateWorkmatesList();
         showFragment(MapFragment.newInstance());
+    }
+
+    private void configureViewModel(){
+        ViewModelFactory viewModelFactory = DI.provideViewModelFactory();
+        mMainViewModel = ViewModelProviders.of(this, viewModelFactory).get(MainViewModel.class);
     }
 
     private void setupMenuInfo(FirebaseUser user){
@@ -127,7 +148,6 @@ public class MainActivity extends BaseActivity
         }
     }
 
-    @SuppressWarnings("StatementWithEmptyBody")
     @Override
     public boolean onNavigationItemSelected(@NonNull MenuItem item) {
         // Handle navigation view item clicks here.
@@ -138,7 +158,7 @@ public class MainActivity extends BaseActivity
                     public void onSuccess(DocumentSnapshot documentSnapshot) {
                         if (documentSnapshot.get("placeToGo") != null){//TODO faire quelque chose si null
                             Intent intent = new Intent(getApplicationContext(), DetailPlaceActivity.class);
-                            intent.putExtra(PLACEREFERENCE, documentSnapshot.get("placeToGo").toString());
+                            intent.putExtra(PLACEREFERENCE, Objects.requireNonNull(documentSnapshot.get("placeToGo")).toString());
                             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                             getApplication().startActivity(intent);
                         }

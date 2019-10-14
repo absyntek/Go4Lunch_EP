@@ -21,6 +21,7 @@ public class Workmate {
     // --- GETTERS ---
     public String getUid() { return uid; }
     public String getUsername() { return username; }
+    @Nullable
     public String getUrlPicture() { return urlPicture; }
     public String getPlaceToGo() { return placeToGo; }
 

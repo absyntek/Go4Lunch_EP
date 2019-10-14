@@ -12,4 +12,8 @@ public class ChatHelper {
     public static CollectionReference getChatCollection(){
         return FirebaseFirestore.getInstance().collection(COLLECTION_NAME);
     }
+
+    public static CollectionReference getChatCollectionWithToken(String token){
+        return FirebaseFirestore.getInstance().collection(COLLECTION_NAME).document(token).collection(token);
+    }
 }

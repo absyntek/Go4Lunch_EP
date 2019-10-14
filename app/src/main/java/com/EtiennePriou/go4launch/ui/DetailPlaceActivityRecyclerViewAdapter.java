@@ -35,7 +35,8 @@ public class DetailPlaceActivityRecyclerViewAdapter extends RecyclerView.Adapter
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-        final Workmate workmate = mWorkmatesThisPlace.get(position);
+        final Workmate workmate;
+        workmate = mWorkmatesThisPlace.get(position);
 
         holder.workmateName.setText(workmate.getUsername());
 

@@ -13,10 +13,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.EtiennePriou.go4launch.R;
-import com.EtiennePriou.go4launch.di.DI;
 import com.EtiennePriou.go4launch.models.PlaceModel;
-import com.EtiennePriou.go4launch.models.Workmate;
-import com.EtiennePriou.go4launch.services.firebase.FireBaseApi;
 import com.EtiennePriou.go4launch.services.firebase.helpers.PlaceHelper;
 import com.EtiennePriou.go4launch.ui.DetailPlaceActivity;
 import com.bumptech.glide.Glide;
@@ -96,14 +93,6 @@ public class MyPlaceRecyclerViewAdapter extends RecyclerView.Adapter<MyPlaceRecy
         });
     }
 
-    private void checkWhoComing (String placeRef){
-        PlaceHelper.getWhoComing(placeRef).addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
-            @Override
-            public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
-            }
-        });
-    }
-
     @Override
     public int getItemCount() {
         return mPlaceModelList.size();
@@ -126,6 +115,7 @@ public class MyPlaceRecyclerViewAdapter extends RecyclerView.Adapter<MyPlaceRecy
             mContext = view.getContext();
         }
 
+        @NonNull
         @Override
         public String toString() {
             return super.toString() + " '" + mtvAdresse.getText() + "'";

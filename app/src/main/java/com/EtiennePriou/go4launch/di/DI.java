@@ -8,6 +8,7 @@ import com.EtiennePriou.go4launch.services.places.PlacesApi;
 public class DI {
     private static PlacesApi servicePlaces = new PlacesApiService();
     private static FireBaseApi serviceFireBase = new FireBaseApiService();
+    private static ViewModelFactory sModelFactory = new ViewModelFactory();
 
     public static PlacesApi getServiceApiPlaces(){
         return servicePlaces;
@@ -15,4 +16,5 @@ public class DI {
     public static FireBaseApi getServiceFireBase() {
         return serviceFireBase;
     }
+    public static ViewModelFactory provideViewModelFactory () { return sModelFactory; }
 }
