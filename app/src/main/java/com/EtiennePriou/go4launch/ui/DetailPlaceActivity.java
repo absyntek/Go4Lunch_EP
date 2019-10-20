@@ -1,30 +1,41 @@
 package com.EtiennePriou.go4launch.ui;
 
 import com.EtiennePriou.go4launch.base.BaseActivity;
+import com.EtiennePriou.go4launch.di.DI;
+import com.EtiennePriou.go4launch.di.ViewModelFactory;
 import com.EtiennePriou.go4launch.models.PlaceModel;
 import com.EtiennePriou.go4launch.models.Workmate;
 import com.EtiennePriou.go4launch.services.firebase.helpers.PlaceHelper;
 import com.EtiennePriou.go4launch.services.firebase.helpers.UserHelper;
 import com.EtiennePriou.go4launch.ui.fragments.workmates_list.MyWorkmateRecyclerViewAdapter;
 import com.bumptech.glide.Glide;
-import com.bumptech.glide.request.target.CustomTarget;
-import com.bumptech.glide.request.transition.Transition;
+import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.material.appbar.CollapsingToolbarLayout;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.appcompat.widget.Toolbar;
+import androidx.core.app.ActivityCompat;
+import androidx.lifecycle.ViewModelProviders;
 import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import android.graphics.drawable.Drawable;
+import android.Manifest;
+import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.graphics.ColorFilter;
+import android.graphics.Paint;
+import android.graphics.PorterDuff;
+import android.net.Uri;
+import android.os.Build;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.EtiennePriou.go4launch.R;
 import com.google.firebase.auth.FirebaseAuth;
@@ -37,22 +48,22 @@ import java.util.Objects;
 
 public class DetailPlaceActivity extends BaseActivity {
 
-    private static final String PLACEREFERENCE = "placeReference";//TODO put in string file
+    private final String TAG = "Error_DetailsActivity";
 
-    private ImageView mimgNoOne;
-    private TextView mtvNoOne;
+    private static final String PLACEREFERENCE = "placeReference";
+
+    private ImageView mimgNoOne, mimgDetailsTop, mimgStar;
+    private TextView mtvNoOne, mtvPlaceName, mtvPlaceAdresse;
     private Button mbtnCall, mbtnLike, mbtnWebsite;
     private RecyclerView mRecyclerView;
-    private Toolbar toolbar;
-    private CollapsingToolbarLayout imgDetails;
     private FloatingActionButton fab;
-
-    private List<Workmate> mWorkmatesThisPlace;
 
     private PlaceModel mPlaceModel;
     private String placeRef;
     private Workmate currentUser;
     private int impToFinish = 0;
+
+    private DetailsViewModel mDetailsViewModel;
 
     @Override
     public int getLayoutContentViewID() {
@@ -63,26 +74,124 @@ public class DetailPlaceActivity extends BaseActivity {
     protected void setupUi() {
 
         mimgNoOne = findViewById(R.id.imgNoOne);
-        imgDetails = findViewById(R.id.toolbar_layout_details);
+        mimgStar = findViewById(R.id.imgStarDetails);
+        mimgDetailsTop = findViewById(R.id.imgDetailsTop);
         mtvNoOne = findViewById(R.id.tvNoOne);
+        mtvPlaceName = findViewById(R.id.tvNameDetails);
+        mtvPlaceAdresse =findViewById(R.id.tvAdresseDetails);
         mbtnCall = findViewById(R.id.btnCall);
         mbtnLike = findViewById(R.id.btnLike);
         mbtnWebsite = findViewById(R.id.btnWebsite);
         mRecyclerView = findViewById(R.id.recyclerviewDetails);
-        toolbar = findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
         fab = findViewById(R.id.fab);
     }
 
     @Override
     protected void withOnCreate() {
+        configureViewModel();
+
         placeRef = getIntent().getStringExtra(PLACEREFERENCE);
         mPlaceModel = mPlacesApi.getPlaceByReference(placeRef);
-        mWorkmatesThisPlace = new ArrayList<>();
+
+        if (mDetailsViewModel.getFav() == null) checkFav();
+        else setBarButton();
 
         setFabButton();
-        checkWorkmateComeHere();
+
+        //TODO ask for switch case
+        if (mDetailsViewModel.getWorkmatesThisPlace() == null){
+            mDetailsViewModel.setWorkmatesThisPlace(new ArrayList<Workmate>());
+            checkWorkmateComeHere();
+        }else{
+            if (mDetailsViewModel.getWorkmatesThisPlace().isEmpty()) {
+                changeUiIfNoWorkmateHere();
+            }else{
+                setUpRecyclerView();
+            }
+        }
+
         updateUi();
+    }
+
+    private void configureViewModel(){
+        ViewModelFactory viewModelFactory = DI.provideViewModelFactory();
+        mDetailsViewModel = ViewModelProviders.of(this, viewModelFactory).get(DetailsViewModel.class);
+    }
+
+    private void checkFav (){
+        UserHelper.getSpecFavExist(mFireBaseApi.getCurrentUser().getUid(),placeRef)
+                .addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
+                    @Override
+                    public void onSuccess(DocumentSnapshot documentSnapshot) {
+                        mDetailsViewModel.setFav(documentSnapshot.exists());
+                        setBarButton();
+                    }
+        })
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        Log.d(TAG, "onFailure: "+ e.getMessage());
+                    }
+        });
+    }
+
+    private void setBarButton() {
+
+        if (mPlaceModel.getPhonenumber() == null || mPlaceModel.getPhonenumber().isEmpty()){
+            mbtnCall.setBackgroundColor(getResources().getColor(R.color.grey)); //TODO Change color icon
+        }else{
+            mbtnCall.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    Intent callIntent = new Intent(Intent.ACTION_CALL);
+                    callIntent.setData(Uri.parse("tel:"+mPlaceModel.getPhonenumber()));
+
+                    if (ActivityCompat.checkSelfPermission(DetailPlaceActivity.this,
+                            Manifest.permission.CALL_PHONE) != PackageManager.PERMISSION_GRANTED){
+                        return;
+                    }
+                    startActivity(callIntent);
+                }
+            });
+        }
+
+        if (mDetailsViewModel.getFav()){
+            mbtnLike.setBackgroundColor(getResources().getColor(R.color.green)); //TODO Change color icon
+            mimgStar.setVisibility(View.VISIBLE);
+        }else {
+            mbtnLike.setBackgroundColor(getResources().getColor(R.color.grey));
+            mimgStar.setVisibility(View.INVISIBLE);
+        }
+        mbtnLike.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if (mDetailsViewModel.getFav()){
+                    UserHelper.deleteFav(mFireBaseApi.getCurrentUser().getUid(),placeRef);
+                    PlaceHelper.deleteUserInFav(mFireBaseApi.getCurrentUser().getUid(),placeRef);
+                    mimgStar.setVisibility(View.INVISIBLE);
+                    mDetailsViewModel.setFav(false);
+                }else{
+                    UserHelper.createUserFav(mFireBaseApi.getCurrentUser().getUid(),placeRef);
+                    PlaceHelper.createFavorite(mFireBaseApi.getCurrentUser().getUid(),placeRef);
+                    mimgStar.setVisibility(View.VISIBLE);
+                    mbtnLike.setBackgroundColor(getResources().getColor(R.color.grey));
+                    mDetailsViewModel.setFav(true);
+                }
+            }
+        });
+
+        if (mPlaceModel.getWebSite() == null || mPlaceModel.getWebSite().isEmpty()){
+                mbtnWebsite.setBackgroundColor(getResources().getColor(R.color.grey));
+        }else {
+            mbtnWebsite.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    Intent webIntent = new Intent(Intent.ACTION_VIEW);
+                    webIntent.setData(Uri.parse(mPlaceModel.getWebSite()));
+                    startActivity(webIntent);
+                }
+            });
+        }
     }
 
     private void checkWorkmateComeHere() {
@@ -92,15 +201,23 @@ public class DetailPlaceActivity extends BaseActivity {
                 if (!queryDocumentSnapshots.getDocuments().isEmpty()){
                     final int forFinish = queryDocumentSnapshots.size();
                     for (DocumentSnapshot userRef : queryDocumentSnapshots.getDocuments()){
-                        UserHelper.getUser(Objects.requireNonNull(userRef.get("userRef")).toString())
+                        UserHelper.getUser(userRef.get("uid").toString())
                                 .addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
                             @Override
                             public void onSuccess(DocumentSnapshot documentSnapshot) {
                                 if (!Objects.equals(documentSnapshot.get("uid"), currentUser.getUid())){
-                                    mWorkmatesThisPlace.add(documentSnapshot.toObject(Workmate.class));
+                                    List<Workmate> tmp = mDetailsViewModel.getWorkmatesThisPlace();
+                                    tmp.add(documentSnapshot.toObject(Workmate.class));
+                                    mDetailsViewModel.setWorkmatesThisPlace(tmp);
                                 }
-                                impToFinish++; //TODO change this
-                                if (impToFinish == forFinish){ setUpRecyclerView(); }
+                                impToFinish++; //TODO change this RX Java
+                                if (impToFinish == forFinish){
+                                    if (mDetailsViewModel.getWorkmatesThisPlace().isEmpty()) {
+                                        changeUiIfNoWorkmateHere();
+                                    }else{
+                                        setUpRecyclerView();
+                                    }
+                                }
                             }
                         });
                     }
@@ -111,27 +228,16 @@ public class DetailPlaceActivity extends BaseActivity {
 
     private void updateUi() {
         if (mPlaceModel.getImgReference() != null) {
-            Glide.with(this).load(mPlaceModel.getPhotoUri()).into(new CustomTarget<Drawable>() {
-                @Override
-                public void onResourceReady(@NonNull Drawable resource, @Nullable Transition<? super Drawable> transition) {
-                    imgDetails.setBackground(resource);
-                }
-
-                @Override
-                public void onLoadCleared(@Nullable Drawable placeholder) {
-
-                }
-            });
+            Glide.with(mimgDetailsTop).load(mPlaceModel.getPhotoUri()).into(mimgDetailsTop);
         }
-        toolbar.setTitle(mPlaceModel.getName());
-        toolbar.setSubtitle(mPlaceModel.getAdresse());
-
+        mtvPlaceName.setText(mPlaceModel.getName());
+        mtvPlaceAdresse.setText(mPlaceModel.getAdresse());
     }
 
     private void setUpRecyclerView (){
         mRecyclerView.setLayoutManager(new LinearLayoutManager(this));
         mRecyclerView.addItemDecoration(new DividerItemDecoration(this, DividerItemDecoration.VERTICAL));
-        mRecyclerView.setAdapter(new MyWorkmateRecyclerViewAdapter(mWorkmatesThisPlace));
+        mRecyclerView.setAdapter(new MyWorkmateRecyclerViewAdapter(mDetailsViewModel.getWorkmatesThisPlace()));
     }
 
     private void setFabButton (){
@@ -141,7 +247,13 @@ public class DetailPlaceActivity extends BaseActivity {
                     public void onSuccess(DocumentSnapshot documentSnapshot) {
                         currentUser = documentSnapshot.toObject(Workmate.class);
                         if (currentUser.getPlaceToGo() != null && currentUser.getPlaceToGo().equals(mPlaceModel.getReference())){
-                            //TODO fab change color
+                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                                fab.getDrawable().setTint(getResources().getColor(R.color.green)); //TOdo Change color
+                            }
+                        }else {
+                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                                fab.getDrawable().setTint(getResources().getColor(R.color.grey)); //TOdo Change color
+                            }
                         }
                         fab.setOnClickListener(new View.OnClickListener() {
                             @Override
@@ -152,13 +264,21 @@ public class DetailPlaceActivity extends BaseActivity {
                                             public void onSuccess(DocumentSnapshot documentSnapshot) {
                                                 currentUser = documentSnapshot.toObject(Workmate.class);
                                                 if (currentUser.getPlaceToGo() != null && currentUser.getPlaceToGo().equals(placeRef)){
-                                                    PlaceHelper.deleteUserWhoComming(mPlaceModel.getReference(),currentUser.getUid());
+                                                    PlaceHelper.deleteUserWhoComming(currentUser.getUid(),mPlaceModel.getReference());
                                                     UserHelper.updatePlaceToGo(currentUser.getUid(),null);
-                                                    //TODO Envoyer un petit message de confirmation
+                                                    currentUser.setPlaceToGo(null);
+                                                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                                                        fab.getDrawable().setTint(getResources().getColor(R.color.grey));//TOdo Change color
+                                                    }
+                                                    makeToast(getResources().getString(R.string.no_going_there));
                                                 }else{
                                                     PlaceHelper.createWhoComing(mPlaceModel.getReference(),currentUser.getUid());
                                                     UserHelper.updatePlaceToGo(currentUser.getUid(),mPlaceModel.getReference());
-                                                    //TODO Envoyer un petit message de confirmation
+                                                    currentUser.setPlaceToGo(mPlaceModel.getReference());
+                                                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                                                        fab.getDrawable().setTint(getResources().getColor(R.color.green)); //TOdo Change color
+                                                    }
+                                                    makeToast(getResources().getString(R.string.nice_choice));
                                                 }
                                             }
                                         });
@@ -176,5 +296,9 @@ public class DetailPlaceActivity extends BaseActivity {
             mimgNoOne.setVisibility(View.VISIBLE);
             mtvNoOne.setVisibility(View.VISIBLE);
         }
+    }
+
+    private void makeToast(String text){
+        Toast.makeText(this, text, Toast.LENGTH_SHORT).show();
     }
 }

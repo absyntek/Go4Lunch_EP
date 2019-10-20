@@ -140,5 +140,7 @@
     <string name="website">WEBSITE</string>
     <string name="adresse">French restaurant - 3 route de la Couarde</string>
     <string name="la_maison">la maison</string>
+    <string name="no_going_there">You are not going there anymore</string>
+    <string name="nice_choice">Nice choice ! see you there</string>
 
 </resources>

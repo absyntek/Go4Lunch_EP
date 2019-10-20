@@ -47,13 +47,13 @@ public class MyWorkmateRecyclerViewAdapter extends RecyclerView.Adapter<MyWorkma
         holder.btnChat.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                String[] test = new String[] {
-                        workmate.getUid(),
-                        FirebaseAuth.getInstance().getUid()
-                };
-                Arrays.sort(test);
-                final String chatTocken = test[0] + test[1];
+                String chatTocken;
 
+                if (workmate.getUid().compareTo(FirebaseAuth.getInstance().getUid()) > 0){
+                    chatTocken = workmate.getUid()+ FirebaseAuth.getInstance().getUid();
+                }else{
+                    chatTocken = FirebaseAuth.getInstance().getUid() + workmate.getUid();
+                }
             }
         });
     }

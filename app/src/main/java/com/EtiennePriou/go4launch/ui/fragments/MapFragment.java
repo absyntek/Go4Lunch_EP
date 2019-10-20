@@ -96,7 +96,8 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, Locatio
         myProgress = new ProgressDialog(mContext);
         myProgress.setTitle("Fetching nearby restaurants ...");
         myProgress.setMessage("Please wait...");
-        myProgress.setCancelable(true);
+        myProgress.setCancelable(false);
+        myProgress.setCanceledOnTouchOutside(false);
         // Display Progress Bar.
         myProgress.show();
     }
@@ -122,8 +123,12 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, Locatio
     @Override
     public void onMapReady(GoogleMap map) {
         mMap = map;
-        requestPermissionLocation();
-        mMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
+        if (mPlacesApi.getNearbyPlaceModelList() != null){
+            showNearbyPlaces();
+        }else{
+            requestPermissionLocation();
+            mMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
+        }
     }
 
     private void requestPermissionLocation() {

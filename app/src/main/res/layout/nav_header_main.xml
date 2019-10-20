@@ -37,7 +37,7 @@
         android:paddingTop="@dimen/nav_header_vertical_spacing"
         android:text="@string/nav_header_title"
         android:textAppearance="@style/TextAppearance.AppCompat.Body1"
-        android:textColor="@color/common_google_signin_btn_text_dark_focused"
+        android:textColor="@color/quantum_white_100"
         android:textStyle="bold"
         app:layout_constraintBottom_toTopOf="@+id/tv_menu_mail"
         app:layout_constraintStart_toEndOf="@+id/img_menu_profile"
@@ -50,7 +50,7 @@
         android:layout_marginStart="8dp"
         android:layout_marginBottom="8dp"
         android:text="@string/nav_header_subtitle"
-        android:textColor="@color/common_google_signin_btn_text_dark_focused"
+        android:textColor="@color/quantum_white_100"
         android:textStyle="bold"
         app:layout_constraintBottom_toBottomOf="@+id/img_menu_profile"
         app:layout_constraintStart_toEndOf="@+id/img_menu_profile" />

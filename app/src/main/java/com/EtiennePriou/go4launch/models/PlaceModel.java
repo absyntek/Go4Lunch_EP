@@ -2,6 +2,8 @@ package com.EtiennePriou.go4launch.models;
 
 import android.net.Uri;
 
+import com.EtiennePriou.go4launch.BuildConfig;
+
 public class PlaceModel {
 
     private String name, adresse, reference, imgReference;
@@ -49,11 +51,9 @@ public class PlaceModel {
         return this.isOpen;
     }
     public String getUrlPlaceDetails(){
-        StringBuilder placeDetails = new StringBuilder("https://maps.googleapis.com/maps/api/place/details/json?");
-        placeDetails.append("placeid="+ this.placeId);
-        placeDetails.append("&fields=formatted_phone_number,opening_hours,website");
-        placeDetails.append("&key=AIzaSyD5hmxXOnLbZOEwlAuJ5Y8pQHxhPYQ8AvM");
-        return placeDetails.toString();
+        return "https://maps.googleapis.com/maps/api/place/details/json?" + "placeid=" + this.placeId +
+                "&fields=formatted_phone_number,opening_hours,website" +
+                "&key=" + BuildConfig.PlaceApiKey;
     }
     public String getWebSite() {
         return webSite;
