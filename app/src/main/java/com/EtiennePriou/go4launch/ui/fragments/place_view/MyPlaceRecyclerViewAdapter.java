@@ -15,7 +15,7 @@ import android.widget.TextView;
 import com.EtiennePriou.go4launch.R;
 import com.EtiennePriou.go4launch.models.PlaceModel;
 import com.EtiennePriou.go4launch.services.firebase.helpers.PlaceHelper;
-import com.EtiennePriou.go4launch.ui.DetailPlaceActivity;
+import com.EtiennePriou.go4launch.ui.details.DetailPlaceActivity;
 import com.bumptech.glide.Glide;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.firestore.QuerySnapshot;

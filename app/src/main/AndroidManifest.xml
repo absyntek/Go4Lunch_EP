@@ -16,7 +16,7 @@
             android:name=".ui.SettingsActivity"
             android:label="@string/title_activity_settings" />
         <activity
-            android:name=".ui.DetailPlaceActivity"
+            android:name=".ui.details.DetailPlaceActivity"
             android:label=""
             android:theme="@style/AppTheme.NoActionBar" />
 
@@ -50,6 +50,14 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <service
+            android:name=".utils.NotificationsService">
+            <intent-filter>
+                <action android:name="com.google.firebase.MESSAGING_EVENT"/>
+            </intent-filter>
+        </service>
+
         <meta-data
             android:name="com.google.android.geo.API_KEY"
             android:value="@string/google_maps_key" />

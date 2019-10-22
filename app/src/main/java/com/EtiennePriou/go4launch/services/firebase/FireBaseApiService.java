@@ -6,7 +6,9 @@ import androidx.annotation.NonNull;
 
 import com.EtiennePriou.go4launch.events.ReceiveWorkmatePlace;
 import com.EtiennePriou.go4launch.models.Workmate;
+import com.EtiennePriou.go4launch.services.firebase.helpers.UserHelper;
 import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -32,28 +34,8 @@ public class FireBaseApiService implements FireBaseApi{
     }
 
     @Override
-    public void updateWorkmatesList() {
-        FirebaseFirestore db = FirebaseFirestore.getInstance();
-        db.collection("users").get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
-            @Override
-            public void onComplete(@NonNull Task<QuerySnapshot> task) {
-                if (task.isSuccessful()){
-                    mWorkmates = task.getResult().toObjects(Workmate.class);
-                    for (Workmate workmate : mWorkmates){
-                        if (workmate.getUid().equals(currentUser.getUid())){
-                            actualUser = workmate;
-                            mWorkmates.remove(workmate);
-                            break;
-                        }
-                    }
-                    EventBus.getDefault().post(new ReceiveWorkmatePlace());
-
-                }else {
-                    Log.w(TAG, "Error getting documents.", task.getException());
-                    mWorkmates = null;
-                }
-            }
-        });
+    public void setWorkmatesList(List<Workmate> workmates) {
+        this.mWorkmates = workmates;
     }
 
     @Override

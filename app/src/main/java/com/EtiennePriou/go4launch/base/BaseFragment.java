@@ -8,19 +8,24 @@ import android.view.ViewGroup;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.ViewModelProviders;
 import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.EtiennePriou.go4launch.di.DI;
+import com.EtiennePriou.go4launch.di.ViewModelFactory;
 import com.EtiennePriou.go4launch.services.firebase.FireBaseApi;
 import com.EtiennePriou.go4launch.services.places.PlacesApi;
+import com.EtiennePriou.go4launch.ui.MainActivity;
+import com.EtiennePriou.go4launch.ui.MainViewModel;
 
 public abstract class BaseFragment extends Fragment {
 
     protected PlacesApi mPlacesApi;
     protected FireBaseApi mFireBaseApi;
     protected RecyclerView mRecyclerView;
+    protected MainViewModel mMainViewModel; //TODO check
 
     protected abstract int setLayout();
     protected abstract void initList();
@@ -30,6 +35,7 @@ public abstract class BaseFragment extends Fragment {
         super.onCreate(savedInstanceState);
         mPlacesApi = DI.getServiceApiPlaces();
         mFireBaseApi = DI.getServiceFireBase();
+        configureViewModel();
     }
 
     @Nullable
@@ -55,7 +61,8 @@ public abstract class BaseFragment extends Fragment {
         return super.onGetLayoutInflater(savedInstanceState);
     }
 
-    protected void refreshView() {
-        mRecyclerView.getAdapter().notifyDataSetChanged();
+    private void configureViewModel(){
+        ViewModelFactory viewModelFactory = DI.provideViewModelFactory();
+        mMainViewModel = ViewModelProviders.of(this, viewModelFactory).get(MainViewModel.class);
     }
 }

@@ -7,7 +7,7 @@ import java.util.List;
 
 public interface FireBaseApi {
 
-    void updateWorkmatesList();
+    void setWorkmatesList(List<Workmate> workmates);
     List<Workmate> getWorkmatesList ();
     Workmate getActualUser();
     void setCurrentUser(FirebaseUser currentUser);

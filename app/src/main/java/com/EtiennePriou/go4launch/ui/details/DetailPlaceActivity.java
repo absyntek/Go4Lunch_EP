@@ -1,4 +1,4 @@
-package com.EtiennePriou.go4launch.ui;
+package com.EtiennePriou.go4launch.ui.details;
 
 import com.EtiennePriou.go4launch.base.BaseActivity;
 import com.EtiennePriou.go4launch.di.DI;
@@ -11,11 +11,9 @@ import com.EtiennePriou.go4launch.ui.fragments.workmates_list.MyWorkmateRecycler
 import com.bumptech.glide.Glide;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
-import com.google.android.material.appbar.CollapsingToolbarLayout;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import androidx.annotation.NonNull;
-import androidx.appcompat.widget.Toolbar;
 import androidx.core.app.ActivityCompat;
 import androidx.lifecycle.ViewModelProviders;
 import androidx.recyclerview.widget.DividerItemDecoration;
@@ -25,9 +23,6 @@ import androidx.recyclerview.widget.RecyclerView;
 import android.Manifest;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.graphics.ColorFilter;
-import android.graphics.Paint;
-import android.graphics.PorterDuff;
 import android.net.Uri;
 import android.os.Build;
 import android.util.Log;
@@ -43,7 +38,9 @@ import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 public class DetailPlaceActivity extends BaseActivity {
@@ -98,7 +95,7 @@ public class DetailPlaceActivity extends BaseActivity {
 
         setFabButton();
 
-        //TODO ask for switch case
+
         if (mDetailsViewModel.getWorkmatesThisPlace() == null){
             mDetailsViewModel.setWorkmatesThisPlace(new ArrayList<Workmate>());
             checkWorkmateComeHere();
@@ -171,7 +168,7 @@ public class DetailPlaceActivity extends BaseActivity {
                     mimgStar.setVisibility(View.INVISIBLE);
                     mDetailsViewModel.setFav(false);
                 }else{
-                    UserHelper.createUserFav(mFireBaseApi.getCurrentUser().getUid(),placeRef);
+                    UserHelper.createUserFav(mFireBaseApi.getCurrentUser().getUid(),placeRef, mPlaceModel.getName());
                     PlaceHelper.createFavorite(mFireBaseApi.getCurrentUser().getUid(),placeRef);
                     mimgStar.setVisibility(View.VISIBLE);
                     mbtnLike.setBackgroundColor(getResources().getColor(R.color.grey));
@@ -213,6 +210,7 @@ public class DetailPlaceActivity extends BaseActivity {
                                 impToFinish++; //TODO change this RX Java
                                 if (impToFinish == forFinish){
                                     if (mDetailsViewModel.getWorkmatesThisPlace().isEmpty()) {
+                                        mtvNoOne.setText(getString(R.string.onlyOne));
                                         changeUiIfNoWorkmateHere();
                                     }else{
                                         setUpRecyclerView();
@@ -237,7 +235,7 @@ public class DetailPlaceActivity extends BaseActivity {
     private void setUpRecyclerView (){
         mRecyclerView.setLayoutManager(new LinearLayoutManager(this));
         mRecyclerView.addItemDecoration(new DividerItemDecoration(this, DividerItemDecoration.VERTICAL));
-        mRecyclerView.setAdapter(new MyWorkmateRecyclerViewAdapter(mDetailsViewModel.getWorkmatesThisPlace()));
+        mRecyclerView.setAdapter(new MyWorkmateRecyclerViewAdapter(mDetailsViewModel.getWorkmatesThisPlace(),0));
     }
 
     private void setFabButton (){
@@ -245,8 +243,9 @@ public class DetailPlaceActivity extends BaseActivity {
                 .addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
                     @Override
                     public void onSuccess(DocumentSnapshot documentSnapshot) {
+
                         currentUser = documentSnapshot.toObject(Workmate.class);
-                        if (currentUser.getPlaceToGo() != null && currentUser.getPlaceToGo().equals(mPlaceModel.getReference())){
+                        if (currentUser.getPlaceToGo() != null && currentUser.getPlaceToGo().get("placeRef").toString().equals(mPlaceModel.getReference())){
                             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                                 fab.getDrawable().setTint(getResources().getColor(R.color.green)); //TOdo Change color
                             }
@@ -255,33 +254,53 @@ public class DetailPlaceActivity extends BaseActivity {
                                 fab.getDrawable().setTint(getResources().getColor(R.color.grey)); //TOdo Change color
                             }
                         }
+
                         fab.setOnClickListener(new View.OnClickListener() {
                             @Override
                             public void onClick(View view) {
-                                UserHelper.getUser(FirebaseAuth.getInstance().getCurrentUser().getUid())
-                                        .addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
-                                            @Override
-                                            public void onSuccess(DocumentSnapshot documentSnapshot) {
-                                                currentUser = documentSnapshot.toObject(Workmate.class);
-                                                if (currentUser.getPlaceToGo() != null && currentUser.getPlaceToGo().equals(placeRef)){
-                                                    PlaceHelper.deleteUserWhoComming(currentUser.getUid(),mPlaceModel.getReference());
-                                                    UserHelper.updatePlaceToGo(currentUser.getUid(),null);
-                                                    currentUser.setPlaceToGo(null);
-                                                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                                                        fab.getDrawable().setTint(getResources().getColor(R.color.grey));//TOdo Change color
-                                                    }
-                                                    makeToast(getResources().getString(R.string.no_going_there));
-                                                }else{
-                                                    PlaceHelper.createWhoComing(mPlaceModel.getReference(),currentUser.getUid());
-                                                    UserHelper.updatePlaceToGo(currentUser.getUid(),mPlaceModel.getReference());
-                                                    currentUser.setPlaceToGo(mPlaceModel.getReference());
-                                                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                                                        fab.getDrawable().setTint(getResources().getColor(R.color.green)); //TOdo Change color
-                                                    }
-                                                    makeToast(getResources().getString(R.string.nice_choice));
-                                                }
-                                            }
-                                        });
+                                Map<String, Object> placeToGo = new HashMap<>();
+                                if (currentUser.getPlaceToGo() != null && currentUser.getPlaceToGo().get("placeRef").toString().equals(placeRef)){
+
+                                    PlaceHelper.deleteUserWhoComming(currentUser.getUid(),mPlaceModel.getReference());
+                                    UserHelper.updatePlaceToGo(currentUser.getUid(),null);
+
+                                    currentUser.setPlaceToGo(null);
+
+                                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                                        fab.getDrawable().setTint(getResources().getColor(R.color.grey));//TOdo Change color
+                                    }
+                                    makeToast(getResources().getString(R.string.no_going_there));
+
+                                }else if (currentUser.getPlaceToGo() != null && !currentUser.getPlaceToGo().get("placeRef").toString().equals(placeRef)){
+                                    placeToGo.put("placeRef",placeRef);
+                                    placeToGo.put("placeName",mPlaceModel.getName());
+
+                                    PlaceHelper.deleteUserWhoComming(currentUser.getUid(),currentUser.getPlaceToGo().get("placeRef").toString());
+                                    PlaceHelper.createWhoComing(mPlaceModel.getReference(),currentUser.getUid());
+                                    UserHelper.updatePlaceToGo(currentUser.getUid(),placeToGo);
+
+                                    currentUser.setPlaceToGo(placeToGo);
+
+                                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                                        fab.getDrawable().setTint(getResources().getColor(R.color.green)); //TOdo Change color
+                                    }
+                                    makeToast(getResources().getString(R.string.nice_choice));
+
+                                }else{
+                                    placeToGo.put("placeRef",placeRef);
+                                    placeToGo.put("placeName",mPlaceModel.getName());
+
+                                    PlaceHelper.createWhoComing(mPlaceModel.getReference(),currentUser.getUid());
+                                    UserHelper.updatePlaceToGo(currentUser.getUid(),placeToGo);
+
+                                    currentUser.setPlaceToGo(placeToGo);
+
+                                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                                        fab.getDrawable().setTint(getResources().getColor(R.color.green)); //TOdo Change color
+                                    }
+                                    makeToast(getResources().getString(R.string.nice_choice));
+                                }
+
                             }
                         });
                     }

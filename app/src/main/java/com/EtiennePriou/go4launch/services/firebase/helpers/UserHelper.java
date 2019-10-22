@@ -45,13 +45,18 @@ public class UserHelper {
         return UserHelper.getUsersCollection().document(uid).set(userToCreate);
     }
 
-    public static Task<Void> createUserFav(String placeRef, String uid) {
+    public static Task<Void> createUserFav(String placeRef, String uid, String placeName) {
         Map<String, Object> toCreate = new HashMap<>();
         toCreate.put("placeRef",placeRef);
+        toCreate.put("placeName",placeName);
         return UserHelper.getUsersCollection().document(uid).set(toCreate);
     }
 
     // --- GET ---
+
+    public static Task<QuerySnapshot> getUserList(){
+        return UserHelper.getUsersCollection().get();
+    }
 
     public static Task<DocumentSnapshot> getUser(String uid){
         return UserHelper.getUsersCollection().document(uid).get();
@@ -75,7 +80,7 @@ public class UserHelper {
         return UserHelper.getUsersCollection().document(uid).update("username", username);
     }
 
-    public static Task<Void> updatePlaceToGo(String uid, String placeRef) {
+    public static Task<Void> updatePlaceToGo(String uid, Map<String, Object> placeRef) {
         return UserHelper.getUsersCollection().document(uid).update("placeToGo", placeRef);
     }
 

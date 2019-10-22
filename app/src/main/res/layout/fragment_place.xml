@@ -81,7 +81,7 @@
         android:layout_height="wrap_content"
         android:layout_marginEnd="8dp"
         android:fontFamily="@font/raleway_semibold"
-        android:text="(5)"
+        android:text="(-)"
         android:textSize="12sp"
         app:layout_constraintEnd_toStartOf="@+id/imgPlace"
         app:layout_constraintTop_toTopOf="@+id/tvAdressePlace" />

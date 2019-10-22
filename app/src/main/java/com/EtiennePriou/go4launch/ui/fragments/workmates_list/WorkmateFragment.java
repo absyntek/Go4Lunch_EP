@@ -13,21 +13,15 @@ public class WorkmateFragment extends BaseFragment {
     public WorkmateFragment() { }
 
 
-    public static WorkmateFragment newInstance() {
-        return new WorkmateFragment();
-    }
+    public static WorkmateFragment newInstance() { return new WorkmateFragment(); }
 
     @Override
     protected int setLayout() { return R.layout.fragment_workmate_list; }
 
     @Override
-    protected void initList() {
-        if (mFireBaseApi.getWorkmatesList() != null) setAdapter();
-    }
+    protected void initList() { if (mFireBaseApi.getWorkmatesList() != null) setAdapter(); }
 
-    private void setAdapter(){
-        mRecyclerView.setAdapter(new MyWorkmateRecyclerViewAdapter(mFireBaseApi.getWorkmatesList()));
-    }
+    private void setAdapter(){ mRecyclerView.setAdapter(new MyWorkmateRecyclerViewAdapter(mFireBaseApi.getWorkmatesList(),1)); }
 
     @Override
     public void onStart() {

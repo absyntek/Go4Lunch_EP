@@ -142,5 +142,9 @@
     <string name="la_maison">la maison</string>
     <string name="no_going_there">You are not going there anymore</string>
     <string name="nice_choice">Nice choice ! see you there</string>
+    <string name="isJoining">is joining!</string>
+    <string name="onlyOne">Actually you are the only one</string>
+    <string name="notification_title">It\'s time to eat !</string>
+    <string name="default_notification_channel_id">default</string>
 
 </resources>

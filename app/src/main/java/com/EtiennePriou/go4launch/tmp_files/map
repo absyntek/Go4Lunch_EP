@@ -27,7 +27,7 @@ import com.EtiennePriou.go4launch.events.ReceiveListPlace;
 import com.EtiennePriou.go4launch.models.PlaceModel;
 import com.EtiennePriou.go4launch.services.places.PlacesApi;
 
-import com.EtiennePriou.go4launch.ui.DetailPlaceActivity;
+import com.EtiennePriou.go4launch.ui.details.DetailPlaceActivity;
 import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationListener;

@@ -213,7 +213,6 @@ public class ConnectionActivity extends BaseActivity {
                             // Sign in success, update UI with the signed-in user's information
                             Log.d(TAG, "signInWithCredential:success");
                             FirebaseUser user = mAuth.getCurrentUser();
-                            // TODO open mainactivity
                             startMainActivity();
                         } else {
                             // If sign in fails, display a message to the user.

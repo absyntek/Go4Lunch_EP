@@ -1,4 +1,4 @@
-package com.EtiennePriou.go4launch.ui;
+package com.EtiennePriou.go4launch.ui.details;
 
 import androidx.lifecycle.ViewModel;
 

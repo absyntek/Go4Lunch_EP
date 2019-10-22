@@ -5,7 +5,9 @@ import com.EtiennePriou.go4launch.R;
 import com.EtiennePriou.go4launch.base.BaseActivity;
 import com.EtiennePriou.go4launch.di.DI;
 import com.EtiennePriou.go4launch.di.ViewModelFactory;
+import com.EtiennePriou.go4launch.models.Workmate;
 import com.EtiennePriou.go4launch.services.firebase.helpers.UserHelper;
+import com.EtiennePriou.go4launch.ui.details.DetailPlaceActivity;
 import com.EtiennePriou.go4launch.ui.fragments.MapFragment;
 import com.EtiennePriou.go4launch.ui.fragments.place_view.PlaceFragment;
 import com.EtiennePriou.go4launch.ui.fragments.workmates_list.WorkmateFragment;
@@ -28,6 +30,7 @@ import com.google.android.material.navigation.NavigationView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.QuerySnapshot;
 
 import androidx.drawerlayout.widget.DrawerLayout;
 
@@ -121,7 +124,15 @@ public class MainActivity extends BaseActivity
             setupMenuInfo(currentUser);
         }
 
-        if (mFireBaseApi.getWorkmatesList() == null) mFireBaseApi.updateWorkmatesList();
+        if (mFireBaseApi.getWorkmatesList() == null){
+            UserHelper.getUserList().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
+                @Override
+                public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
+                    mFireBaseApi.setWorkmatesList(queryDocumentSnapshots.toObjects(Workmate.class));
+                }
+            });
+
+        }
         showFragment(MapFragment.newInstance());
     }
 
@@ -164,9 +175,10 @@ public class MainActivity extends BaseActivity
                 UserHelper.getUser(mFireBaseApi.getCurrentUser().getUid()).addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
                     @Override
                     public void onSuccess(DocumentSnapshot documentSnapshot) {
-                        if (documentSnapshot.get("placeToGo") != null){//TODO faire quelque chose si null
+                        Workmate user = documentSnapshot.toObject(Workmate.class);
+                        if (user.getPlaceToGo() != null){//TODO faire quelque chose si null
                             Intent intent = new Intent(getApplicationContext(), DetailPlaceActivity.class);
-                            intent.putExtra(PLACEREFERENCE, Objects.requireNonNull(documentSnapshot.get("placeToGo")).toString());
+                            intent.putExtra(PLACEREFERENCE, Objects.requireNonNull(user.getPlaceToGo().get("placeRef").toString()));
                             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                             getApplication().startActivity(intent);
                         }
