@@ -16,7 +16,7 @@ import java.util.List;
  * @author Priyanka
  */
 
-public class DataParser {
+class DataParser {
 
     private PlaceModel getPlace(JSONObject googlePlaceJson){
         String name = null, adresse = null, reference = null, imgReference = null;
@@ -75,7 +75,7 @@ public class DataParser {
         return placelist;
     }
 
-    public PlaceModel addMissingDetails(PlaceModel placeModel, JSONObject jsonObject){
+    PlaceModel addMissingDetails(PlaceModel placeModel, JSONObject jsonObject){
 
         String webSite = null, phone_number = null;
         try {
@@ -94,7 +94,7 @@ public class DataParser {
         return placeModel;
     }
 
-    public List<PlaceModel> parse(String jsonData) {
+    List<PlaceModel> parse(String jsonData) {
         JSONArray jsonArray = null;
         JSONObject jsonObject;
 

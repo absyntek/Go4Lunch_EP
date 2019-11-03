@@ -8,6 +8,7 @@ import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QuerySnapshot;
 
 import java.util.ArrayList;
@@ -70,8 +71,8 @@ public class UserHelper {
         return UserHelper.getFavoriteCollection(uid).document(placeRef).get(); //TODO change code
     }
 
-    public static Observable <DocumentReference> getSpecFavExistV2(String uid, String placeRef){
-        return Observable.just(UserHelper.getFavoriteCollection(uid).document(placeRef)); //TODO change code
+    public static Query queryUser(String searchQuery){
+        return getUsersCollection().whereArrayContains("username",searchQuery);
     }
 
     // --- UPDATE ---

@@ -1,7 +1,5 @@
 package com.EtiennePriou.go4launch.services.places;
 
-import android.content.Context;
-
 import com.EtiennePriou.go4launch.BuildConfig;
 import com.EtiennePriou.go4launch.models.PlaceModel;
 import com.EtiennePriou.go4launch.utils.GetNearbyPlacesData;
@@ -37,30 +35,14 @@ public class PlacesApiService implements PlacesApi {
     @Override
     public void setUrlNearbyPlace(double latitude , double longitude) {
 
-        StringBuilder googlePlaceUrl = new StringBuilder("https://maps.googleapis.com/maps/api/place/nearbysearch/json?");
-        googlePlaceUrl.append("location="+latitude+","+longitude);
-        googlePlaceUrl.append("&radius="+ proximity_radius);
-        googlePlaceUrl.append("&type=restaurant");
-        googlePlaceUrl.append("&sensor=true");
-        googlePlaceUrl.append("&key=" + BuildConfig.PlaceApiKey);
-
-        this.urlNearbyPlace = googlePlaceUrl.toString();
+        String googlePlaceUrl = "https://maps.googleapis.com/maps/api/place/nearbysearch/json?" +
+                "location=" + latitude + "," + longitude +
+                "&radius=" + proximity_radius +
+                "&type=restaurant" +
+                "&sensor=true" +
+                "&key=" + BuildConfig.PlaceApiKey;
+        this.urlNearbyPlace = googlePlaceUrl;
     }
-    @Override
-    public void setUrlPlaceDetails(String placeId){
-        StringBuilder placeDetails = new StringBuilder("https://maps.googleapis.com/maps/api/place/details/json?");
-        placeDetails.append("placeid="+placeId);
-        placeDetails.append("&fields=formatted_phone_number,opening_hours,website");
-        placeDetails.append("&key=" + BuildConfig.PlaceApiKey);
-
-        String urlPlaceDetails = placeDetails.toString();
-    }
-
-    @Override
-    public void setPlacesClient(Context context) {
-
-    }
-
 
     // ---- GETTERS ---- //
     @Override
@@ -80,13 +62,10 @@ public class PlacesApiService implements PlacesApi {
         }
         return null;
     }
-
     @Override
-    public PlacesClient getPlacesClient() {
-        return mPlacesClient;
+    public String getUrlNearbyPlace() {
+        return urlNearbyPlace;
     }
-
-    // ---- UTLIS ---- //
 
 
 }

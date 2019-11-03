@@ -27,6 +27,7 @@ import com.EtiennePriou.go4launch.events.ReceiveListPlace;
 import com.EtiennePriou.go4launch.models.PlaceModel;
 import com.EtiennePriou.go4launch.services.places.PlacesApi;
 
+import com.EtiennePriou.go4launch.ui.MainViewModel;
 import com.EtiennePriou.go4launch.ui.details.DetailPlaceActivity;
 import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.location.FusedLocationProviderClient;
@@ -63,6 +64,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, Locatio
 
     private static final int REQUEST_ID_ACCESS_COURSE_FINE_LOCATION = 100;
     private static final String PLACEREFERENCE = "placeReference";
+    private static MainViewModel mMainViewModel;
     private GoogleMap mMap;
     private View mView;
     private Context mContext;
@@ -71,12 +73,14 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, Locatio
     private PlacesApi mPlacesApi;
     private PlacesClient placesClient;
     private final String TAG = "TEST";
+    private Location mLocation;
 
 
     public MapFragment() { }
 
-    public static MapFragment newInstance() {
+    public static MapFragment newInstance(MainViewModel mainViewModel) {
         MapFragment fragment = new MapFragment();
+        mMainViewModel = mainViewModel;
         Bundle args = new Bundle();
         fragment.setArguments(args);
         return fragment;
@@ -123,20 +127,16 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, Locatio
     @Override
     public void onMapReady(GoogleMap map) {
         mMap = map;
-        if (mPlacesApi.getNearbyPlaceModelList() != null){
-            showNearbyPlaces();
-        }else{
-            requestPermissionLocation();
-            mMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
-        }
+        requestPermissionLocation();
+        mMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
     }
 
     private void requestPermissionLocation() {
         if (ContextCompat.checkSelfPermission(mContext, ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
                 && ContextCompat.checkSelfPermission(mContext, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+
             // The Permissions to ask user.
-            String[] permissions = new String[]{Manifest.permission.ACCESS_COARSE_LOCATION,
-                    ACCESS_FINE_LOCATION};
+            String[] permissions = new String[]{Manifest.permission.ACCESS_COARSE_LOCATION, ACCESS_FINE_LOCATION};
             // Show a dialog asking the user to allow the above permissions.
             ActivityCompat.requestPermissions(Objects.requireNonNull(getActivity()), permissions, REQUEST_ID_ACCESS_COURSE_FINE_LOCATION);
             return;
@@ -145,10 +145,12 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, Locatio
         fusedLocationClient.getLastLocation().addOnSuccessListener(new OnSuccessListener<Location>() {
             @Override
             public void onSuccess(Location location) {
-                if (location != null){
-                    setNearbyPlaces(location);
-                    getPlacesAround();
-                }
+                LatLng latLng = new LatLng(location.getLatitude(),location.getLongitude());
+                mMainViewModel.setLatLng(latLng);
+
+                mLocation = location;
+                setNearbyPlaces(location);
+                getPlacesAround();
             }
         });
     }
@@ -161,6 +163,8 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, Locatio
                     && grantResults[1] == PackageManager.PERMISSION_GRANTED) {
 
                 Toast.makeText(getContext(), "Permission granted!", Toast.LENGTH_LONG).show();
+                requestPermissionLocation();
+
             }
             // Cancelled or denied.
             else {
@@ -212,6 +216,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, Locatio
     private void setNearbyPlaces(Location location) {
 
         if (mPlacesApi.getNearbyPlaceModelList() == null){
+            mMainViewModel.setLocation(location);
             mPlacesApi.setListPlaces(location.getLatitude(),location.getLongitude(), mMap);
         }else {
             showNearbyPlaces();
@@ -226,6 +231,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, Locatio
 
             double lat = Double.parseDouble( placeModel.getLat() );
             double lng = Double.parseDouble( placeModel.getLongit() );
+
             LatLng latLng = new LatLng( lat, lng);
 
             markerOptions.position(latLng);

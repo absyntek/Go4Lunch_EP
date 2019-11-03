@@ -24,6 +24,13 @@ public class Message {
         this.userSender = userSender;
     }
 
+    public Message(String message, Date dateCreated, Workmate userSender, String urlImage) {
+        this.message = message;
+        this.dateCreated = dateCreated;
+        this.userSender = userSender;
+        this.urlImage = urlImage;
+    }
+
     // --- GETTERS ---
     public String getMessage() { return message; }
     @ServerTimestamp

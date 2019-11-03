@@ -25,7 +25,6 @@ public abstract class BaseFragment extends Fragment {
     protected PlacesApi mPlacesApi;
     protected FireBaseApi mFireBaseApi;
     protected RecyclerView mRecyclerView;
-    protected MainViewModel mMainViewModel; //TODO check
 
     protected abstract int setLayout();
     protected abstract void initList();
@@ -35,7 +34,6 @@ public abstract class BaseFragment extends Fragment {
         super.onCreate(savedInstanceState);
         mPlacesApi = DI.getServiceApiPlaces();
         mFireBaseApi = DI.getServiceFireBase();
-        configureViewModel();
     }
 
     @Nullable
@@ -59,10 +57,5 @@ public abstract class BaseFragment extends Fragment {
     @Override
     public LayoutInflater onGetLayoutInflater(@Nullable Bundle savedInstanceState) {
         return super.onGetLayoutInflater(savedInstanceState);
-    }
-
-    private void configureViewModel(){
-        ViewModelFactory viewModelFactory = DI.provideViewModelFactory();
-        mMainViewModel = ViewModelProviders.of(this, viewModelFactory).get(MainViewModel.class);
     }
 }

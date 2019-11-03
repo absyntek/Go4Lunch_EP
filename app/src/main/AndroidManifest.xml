@@ -52,7 +52,7 @@
         </activity>
 
         <service
-            android:name=".utils.NotificationsService">
+            android:name=".services.NotificationsService">
             <intent-filter>
                 <action android:name="com.google.firebase.MESSAGING_EVENT"/>
             </intent-filter>

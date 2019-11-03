@@ -274,6 +274,7 @@ public class DetailPlaceActivity extends BaseActivity {
                                 }else if (currentUser.getPlaceToGo() != null && !currentUser.getPlaceToGo().get("placeRef").toString().equals(placeRef)){
                                     placeToGo.put("placeRef",placeRef);
                                     placeToGo.put("placeName",mPlaceModel.getName());
+                                    placeToGo.put("adresse", mPlaceModel.getAdresse());
 
                                     PlaceHelper.deleteUserWhoComming(currentUser.getUid(),currentUser.getPlaceToGo().get("placeRef").toString());
                                     PlaceHelper.createWhoComing(mPlaceModel.getReference(),currentUser.getUid());
@@ -289,6 +290,7 @@ public class DetailPlaceActivity extends BaseActivity {
                                 }else{
                                     placeToGo.put("placeRef",placeRef);
                                     placeToGo.put("placeName",mPlaceModel.getName());
+                                    placeToGo.put("adresse", mPlaceModel.getAdresse());
 
                                     PlaceHelper.createWhoComing(mPlaceModel.getReference(),currentUser.getUid());
                                     UserHelper.updatePlaceToGo(currentUser.getUid(),placeToGo);

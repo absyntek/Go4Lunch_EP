@@ -21,7 +21,7 @@ public class WorkmateFragment extends BaseFragment {
     @Override
     protected void initList() { if (mFireBaseApi.getWorkmatesList() != null) setAdapter(); }
 
-    private void setAdapter(){ mRecyclerView.setAdapter(new MyWorkmateRecyclerViewAdapter(mFireBaseApi.getWorkmatesList(),1)); }
+    private void setAdapter(){ mRecyclerView.setAdapter(new MyWorkmateRecyclerViewAdapter(mFireBaseApi.getWorkmatesListNoMe(),1)); }
 
     @Override
     public void onStart() {
@@ -33,6 +33,11 @@ public class WorkmateFragment extends BaseFragment {
     public void onStop() {
         super.onStop();
         EventBus.getDefault().unregister(this);
+    }
+
+    @Override
+    public void onDetach() {
+        super.onDetach();
     }
 
     @Subscribe

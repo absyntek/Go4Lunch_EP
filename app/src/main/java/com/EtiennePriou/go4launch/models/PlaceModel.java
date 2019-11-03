@@ -11,6 +11,7 @@ public class PlaceModel {
     private String lat,longit;
     private String webSite,phonenumber;
     private String isOpen;
+    private float[] distance;
 
     public PlaceModel(String name, String adresse, String reference, String imgReference, String placeId, String lat, String longit, String isOpen) {
         this.name = name;
@@ -62,7 +63,7 @@ public class PlaceModel {
         return phonenumber;
     }
 
-
+    public float[] getDistance() { return distance; }
     // --- SETTERS ---
 
     public void setName(String name) {
@@ -74,4 +75,5 @@ public class PlaceModel {
     public void setPhonenumber(String phonenumber) {
         this.phonenumber = phonenumber;
     }
+    public void setDistance(float[] distance) { this.distance = distance; }
 }

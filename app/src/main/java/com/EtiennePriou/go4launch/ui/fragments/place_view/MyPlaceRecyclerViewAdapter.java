@@ -15,6 +15,7 @@ import android.widget.TextView;
 import com.EtiennePriou.go4launch.R;
 import com.EtiennePriou.go4launch.models.PlaceModel;
 import com.EtiennePriou.go4launch.services.firebase.helpers.PlaceHelper;
+import com.EtiennePriou.go4launch.ui.MainViewModel;
 import com.EtiennePriou.go4launch.ui.details.DetailPlaceActivity;
 import com.bumptech.glide.Glide;
 import com.google.android.gms.tasks.OnSuccessListener;
@@ -26,10 +27,12 @@ public class MyPlaceRecyclerViewAdapter extends RecyclerView.Adapter<MyPlaceRecy
 
     private final List<PlaceModel> mPlaceModelList;
     private Context mContext;
+    private MainViewModel mMainViewModel;
     private static final String PLACEREFERENCE = "placeReference";
 
-    MyPlaceRecyclerViewAdapter(List<PlaceModel> items) {
-        mPlaceModelList = items;
+    MyPlaceRecyclerViewAdapter(List<PlaceModel> items, MainViewModel mainViewModel) {
+        this.mPlaceModelList = items;
+        this.mMainViewModel = mainViewModel;
     }
 
     @NonNull
@@ -54,6 +57,11 @@ public class MyPlaceRecyclerViewAdapter extends RecyclerView.Adapter<MyPlaceRecy
         }else {
             holder.imgPlaceListe.setImageResource(R.drawable.notext_logo200x200);
         }
+
+        // -- Distance between points --
+        double lat = Double.parseDouble(placeModel.getLat());
+        double longit = Double.parseDouble(placeModel.getLongit());
+        holder.mtvDistance.setText(mMainViewModel.getDistanceBetween(lat,longit));
 
         // -- check opening time --
         if (placeModel.isOpen() == null){
@@ -100,7 +108,7 @@ public class MyPlaceRecyclerViewAdapter extends RecyclerView.Adapter<MyPlaceRecy
 
     public class ViewHolder extends RecyclerView.ViewHolder {
         private final View mView;
-        private final TextView mtvNamePlace, mtvAdresse, mtvIsOpen, mtvNbrWorkmates;
+        private final TextView mtvNamePlace, mtvAdresse, mtvIsOpen, mtvNbrWorkmates, mtvDistance;
         private final ImageView imgPlaceListe;
 
 
@@ -111,6 +119,7 @@ public class MyPlaceRecyclerViewAdapter extends RecyclerView.Adapter<MyPlaceRecy
             mtvAdresse = view.findViewById(R.id.tvAdressePlace);
             mtvIsOpen = mView.findViewById(R.id.tvIsOpen);
             mtvNbrWorkmates = mView.findViewById(R.id.tvWorkmateComming);
+            mtvDistance = mView.findViewById(R.id.tvDistance);
             imgPlaceListe = mView.findViewById(R.id.imgPlace);
             mContext = view.getContext();
         }

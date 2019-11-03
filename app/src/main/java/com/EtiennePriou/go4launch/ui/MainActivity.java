@@ -13,15 +13,23 @@ import com.EtiennePriou.go4launch.ui.fragments.place_view.PlaceFragment;
 import com.EtiennePriou.go4launch.ui.fragments.workmates_list.WorkmateFragment;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.RequestOptions;
+import com.google.android.gms.common.api.Status;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.libraries.places.api.Places;
+import com.google.android.libraries.places.api.model.Place;
+import com.google.android.libraries.places.api.model.TypeFilter;
+import com.google.android.libraries.places.widget.Autocomplete;
+import com.google.android.libraries.places.widget.AutocompleteActivity;
+import com.google.android.libraries.places.widget.model.AutocompleteActivityMode;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.core.view.GravityCompat;
 import androidx.appcompat.app.ActionBarDrawerToggle;
 
 import android.content.Intent;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -43,6 +51,8 @@ import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.Objects;
 
 
@@ -51,9 +61,11 @@ public class MainActivity extends BaseActivity
 
     private MainViewModel mMainViewModel;
     private static final String PLACEREFERENCE = "placeReference";
+    private int AUTOCOMPLETE_REQUEST_CODE = 1;
     private TextView mtv_Menu_Mail;
     private TextView mtv_Menu_Name;
     private ImageView imgMenuProfile;
+    private Boolean search = true;
     BottomNavigationView bottomNavigationView;
 
     private BottomNavigationView.OnNavigationItemSelectedListener mOnNavigationItemSelectedListener
@@ -62,22 +74,25 @@ public class MainActivity extends BaseActivity
         public boolean onNavigationItemSelected(@NonNull MenuItem item) {
             switch (item.getItemId()) {
                 case R.id.navigation_map:
-                    if (mMainViewModel.mFragments[0] == null){
-                        mMainViewModel.mFragments[0] = MapFragment.newInstance();
-                        showFragment(mMainViewModel.mFragments[0]);
-                    }else showFragment(mMainViewModel.mFragments[0]);
+                    search = true;
+                    if (mMainViewModel.getFragment(0) == null){
+                        mMainViewModel.setFragment(0,MapFragment.newInstance(mMainViewModel));
+                        showFragment(mMainViewModel.getFragment(0));
+                    }else showFragment(mMainViewModel.getFragment(0));
                     return true;
                 case R.id.navigation_list_view:
-                    if (mMainViewModel.mFragments[1] == null){
-                        mMainViewModel.mFragments[1] = PlaceFragment.newInstance();
-                        showFragment(mMainViewModel.mFragments[1]);
-                    }else showFragment(mMainViewModel.mFragments[1]);
+                    search = true;
+                    if (mMainViewModel.getFragment(1) == null){
+                        mMainViewModel.setFragment(1,PlaceFragment.newInstance(mMainViewModel));
+                        showFragment(mMainViewModel.getFragment(1));
+                    }else showFragment(mMainViewModel.getFragment(1));
                     return true;
                 case R.id.navigation_workmates:
-                    if (mMainViewModel.mFragments[2] == null){
-                        mMainViewModel.mFragments[2] = WorkmateFragment.newInstance();
-                        showFragment(mMainViewModel.mFragments[2]);
-                    }else showFragment(mMainViewModel.mFragments[2]);
+                    search = false;
+                    if (mMainViewModel.getFragment(2) == null){
+                        mMainViewModel.setFragment(2,WorkmateFragment.newInstance());
+                        showFragment(mMainViewModel.getFragment(2));
+                    }else showFragment(mMainViewModel.getFragment(2));
                     return true;
             }
             return false;
@@ -91,36 +106,40 @@ public class MainActivity extends BaseActivity
 
     @Override
     protected void setupUi(){
-
         NavigationView navigationView = findViewById(R.id.nav_view);
-        DrawerLayout drawer = findViewById(R.id.drawer_layout);
-        Toolbar toolbar = findViewById(R.id.toolbar);
         bottomNavigationView = findViewById(R.id.bottom_nav_view);
+        bottomNavigationView.setOnNavigationItemSelectedListener(mOnNavigationItemSelectedListener);
+        navigationView.setNavigationItemSelectedListener(this);
+
+        Toolbar toolbar = findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+
+        DrawerLayout drawer = findViewById(R.id.drawer_layout);
+        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
+                this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
+        drawer.addDrawerListener(toggle);
+        toggle.syncState();
 
         View headerView = navigationView.getHeaderView(0);
         imgMenuProfile = headerView.findViewById(R.id.img_menu_profile);
         mtv_Menu_Mail = headerView.findViewById(R.id.tv_menu_mail);
         mtv_Menu_Name = headerView.findViewById(R.id.tv_menu_name);
-
-        setSupportActionBar(toolbar);
-        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
-                this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
-
-        drawer.addDrawerListener(toggle);
-        toggle.syncState();
-        bottomNavigationView.setOnNavigationItemSelectedListener(mOnNavigationItemSelectedListener);
-        navigationView.setNavigationItemSelectedListener(this);
     }
 
     @Override
     protected void withOnCreate() {
         configureViewModel();
         FirebaseAuth auth = FirebaseAuth.getInstance();
-        FirebaseUser currentUser = auth.getCurrentUser();
-        currentUser.getEmail();
+        final FirebaseUser currentUser = auth.getCurrentUser();
         Places.initialize(this.getApplicationContext(), BuildConfig.PlaceApiKey);
         if (currentUser != null){
             mFireBaseApi.setCurrentUser(currentUser);
+            UserHelper.getUser(currentUser.getUid()).addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
+                @Override
+                public void onSuccess(DocumentSnapshot documentSnapshot) {
+                    mFireBaseApi.setActualUser(documentSnapshot.toObject(Workmate.class));
+                }
+            });
             setupMenuInfo(currentUser);
         }
 
@@ -129,11 +148,12 @@ public class MainActivity extends BaseActivity
                 @Override
                 public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
                     mFireBaseApi.setWorkmatesList(queryDocumentSnapshots.toObjects(Workmate.class));
+                    mFireBaseApi.setWorkmateListNoMe(currentUser.getUid());
                 }
             });
 
         }
-        showFragment(MapFragment.newInstance());
+        showFragment(MapFragment.newInstance(mMainViewModel));
     }
 
     private void configureViewModel(){
@@ -143,7 +163,7 @@ public class MainActivity extends BaseActivity
 
     private void setupMenuInfo(FirebaseUser user){
         mtv_Menu_Mail.setText(user.getEmail());
-        mtv_Menu_Name.setText(user.getDisplayName()); //TODO Return null WHYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYY ???????????????????
+        mtv_Menu_Name.setText(user.getDisplayName()); //TODO Return null change on firebase email verif
         Glide.with(imgMenuProfile.getContext())
                 .load(user.getPhotoUrl())
                 .apply(RequestOptions.circleCropTransform())
@@ -153,8 +173,48 @@ public class MainActivity extends BaseActivity
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         MenuInflater inflater = getMenuInflater();
-        inflater.inflate(R.menu.options_menu, menu);
+        if (search){
+            inflater.inflate(R.menu.options_menu, menu);
+        }
         return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        if (item.getItemId() == R.id.app_bar_search){ setSearch(); }
+        return true;
+    }
+
+    private void setSearch() {
+        if (search){
+            // Set the fields to specify which types of place data to
+            // return after the user has made a selection.
+            List<Place.Field> fields = Arrays.asList(Place.Field.ID, Place.Field.NAME);
+
+            // Start the autocomplete intent.
+            Intent intent = new Autocomplete.IntentBuilder(
+                    AutocompleteActivityMode.OVERLAY, fields)
+                    .setTypeFilter(TypeFilter.ESTABLISHMENT)
+                    .setCountry("FR")
+                    .build(this);
+            startActivityForResult(intent, AUTOCOMPLETE_REQUEST_CODE);
+        }else{
+        }
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == AUTOCOMPLETE_REQUEST_CODE){
+            if (requestCode == RESULT_OK){
+                Place place = Autocomplete.getPlaceFromIntent(data);
+            }else if (requestCode == AutocompleteActivity.RESULT_ERROR){
+                Status status = Autocomplete.getStatusFromIntent(data);
+                Log.i("TAG", status.getStatusMessage());
+            } else if (resultCode == RESULT_CANCELED) {
+                // The user canceled the operation.
+            }
+        }
     }
 
     @Override

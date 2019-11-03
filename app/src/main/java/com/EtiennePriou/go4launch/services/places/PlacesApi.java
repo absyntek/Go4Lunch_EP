@@ -11,7 +11,9 @@ import java.util.List;
 public interface PlacesApi {
 
 
-
+    /*
+     GETTERS
+     */
     void setProximity_radius(Integer proximity_radius);
 
     void setListPlaces(double latitude, double longitude, GoogleMap map);
@@ -20,17 +22,15 @@ public interface PlacesApi {
 
     void setUrlNearbyPlace(double latitude , double longitude);
 
-    void setUrlPlaceDetails(String placeId);
 
-    void setPlacesClient (Context context);
-
-
-
+    /*
+     SETTERS
+     */
     Integer getProximity_radius();
 
     List<PlaceModel> getNearbyPlaceModelList();
 
     PlaceModel getPlaceByReference(String reference);
 
-    PlacesClient getPlacesClient ();
+    String getUrlNearbyPlace();
 }
