@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Go4Launch</string>
+    <string name="action_settings" translatable="false">Propriétés</string>
+    <string name="call">Appeler</string>
+    <string name="close">Fermer</string>
+    <string name="connecting">Connection</string>
+    <string name="error_unknown_error">erreur inconnu</string>
+    <string name="isJoining">vien aussi !</string>
+    <string name="menu_logout">Déconexion</string>
+    <string name="menu_setting">Propriété</string>
+    <string name="menu_your_launch">Votre sélèction</string>
+    <string name="nice_choice">Trés bon chois !</string>
+    <string name="no_going_there">Une autre fois peut-être</string>
+    <string name="notification_title">c\'est l\'heure !</string>
+    <string name="onlyOne">Actuellement, il n\'y à perssonne qui mange ici aujourd\'hui.</string>
+    <string name="open">Ouvert</string>
+    <string name="signin">S\'inscrire</string>
+    <string name="title_list_view">Liste</string>
+    <string name="title_map_view">Carte</string>
+    <string name="title_workmates">Collègues</string>
+    <string name="UnknownTime">Horraires inconnu</string>
+    <string name="website">Site Web</string>
+</resources>

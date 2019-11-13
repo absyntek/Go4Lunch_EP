@@ -1,13 +1,13 @@
 <resources>
     <string name="app_name">Go4Launch</string>
 
-    <string name="facebook_application_id">1622778064523263</string>
-    <string name="fb_login_protocol_scheme">fb1622778064523263</string>
-    <string name="navigation_drawer_open">Open navigation drawer</string>
-    <string name="navigation_drawer_close">Close navigation drawer</string>
-    <string name="nav_header_title">Android Studio</string>
-    <string name="nav_header_subtitle">android.studio@android.com</string>
-    <string name="nav_header_desc">Navigation header</string>
+    <string name="facebook_application_id" translatable="false">1622778064523263</string>
+    <string name="fb_login_protocol_scheme" translatable="false">fb1622778064523263</string>
+    <string name="navigation_drawer_open" translatable="false">Open navigation drawer</string>
+    <string name="navigation_drawer_close" translatable="false">Close navigation drawer</string>
+    <string name="nav_header_title" translatable="false">Android Studio</string>
+    <string name="nav_header_subtitle" translatable="false">android.studio@android.com</string>
+    <string name="nav_header_desc" translatable="false">Navigation header</string>
     <string name="action_settings">Settings</string>
 
 
@@ -19,14 +19,14 @@
     <string name="title_list_view">List View</string>
     <string name="title_workmates">Workmates</string>
 
-    <string name="background_main">Background_main</string>
-    <string name="iconapp">iconapp</string>
+    <string name="background_main" translatable="false">Background_main</string>
+    <string name="iconapp" translatable="false">iconapp</string>
     <string name="connecting">Connecting</string>
-    <string name="title_activity_maps">Map</string>
+    <string name="title_activity_maps" translatable="false">Map</string>
     <string name="open">Open</string>
     <string name="close">Close</string>
-    <string name="title_activity_detail_place">DetailPlaceActivity</string>
-    <string name="large_text">
+    <string name="title_activity_detail_place" translatable="false">DetailPlaceActivity</string>
+    <string name="large_text" translatable="false">
         "Material is the metaphor.\n\n"
 
         "A material metaphor is the unifying theory of a rationalized space and a system of motion."
@@ -117,34 +117,34 @@
     </string>
     <string name="UnknownTime">Unknown Open/Close Time</string>
     <string name="error_unknown_error">error_unknown_error</string>
-    <string name="title_activity_settings">Settings</string>
+    <string name="title_activity_settings" translatable="false">Settings</string>
 
     <!-- Preference Titles -->
-    <string name="messages_header">Messages</string>
-    <string name="sync_header">Sync</string>
+    <string name="messages_header" translatable="false">Messages</string>
+    <string name="sync_header" translatable="false">Sync</string>
 
     <!-- Messages Preferences -->
-    <string name="signature_title">Your signature</string>
-    <string name="reply_title">Default reply action</string>
+    <string name="signature_title" translatable="false">Your signature</string>
+    <string name="reply_title" translatable="false">Default reply action</string>
 
     <!-- Sync Preferences -->
-    <string name="sync_title">Sync email periodically</string>
-    <string name="attachment_title">Download incoming attachments</string>
-    <string name="attachment_summary_on">Automatically download attachments for incoming emails
+    <string name="sync_title" translatable="false">Sync email periodically</string>
+    <string name="attachment_title" translatable="false">Download incoming attachments</string>
+    <string name="attachment_summary_on" translatable="false">Automatically download attachments for incoming emails
     </string>
-    <string name="attachment_summary_off">Only download attachments when manually requested</string>
+    <string name="attachment_summary_off" translatable="false">Only download attachments when manually requested</string>
     <string name="signin">SignIn</string>
-    <string name="title_activity_scrolling">ScrollingActivity</string>
+    <string name="title_activity_scrolling" translatable="false">ScrollingActivity</string>
     <string name="call">CALL</string>
-    <string name="like">LIKE</string>
+    <string name="like" translatable="false">LIKE</string>
     <string name="website">WEBSITE</string>
-    <string name="adresse">French restaurant - 3 route de la Couarde</string>
-    <string name="la_maison">la maison</string>
+    <string name="adresse" translatable="false">French restaurant - 3 route de la Couarde</string>
+    <string name="la_maison" translatable="false">la maison</string>
     <string name="no_going_there">You are not going there anymore</string>
     <string name="nice_choice">Nice choice ! see you there</string>
     <string name="isJoining">is joining!</string>
     <string name="onlyOne">Actually you are the only one</string>
     <string name="notification_title">It\'s time to eat !</string>
-    <string name="default_notification_channel_id">default</string>
+    <string name="default_notification_channel_id" translatable="false">default</string>
 
 </resources>

@@ -54,6 +54,7 @@ import com.google.android.libraries.places.api.net.PlacesClient;
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
@@ -73,7 +74,6 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, Locatio
     private PlacesApi mPlacesApi;
     private PlacesClient placesClient;
     private final String TAG = "TEST";
-    private Location mLocation;
 
 
     public MapFragment() { }
@@ -94,16 +94,14 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, Locatio
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(Objects.requireNonNull(this.getContext()));
 
         //Configure PlacesClient
-        placesClient = Places.createClient(mContext);
+        if (mPlacesApi.getPlacesClient() == null){
+            placesClient = Places.createClient(mContext);
+            mPlacesApi.setPlacesClient(placesClient);
+        }else {
+            placesClient = mPlacesApi.getPlacesClient();
+        }
 
-        // Create Progress Bar.
-        myProgress = new ProgressDialog(mContext);
-        myProgress.setTitle("Fetching nearby restaurants ...");
-        myProgress.setMessage("Please wait...");
-        myProgress.setCancelable(false);
-        myProgress.setCanceledOnTouchOutside(false);
-        // Display Progress Bar.
-        myProgress.show();
+        showProgressBar();
     }
 
     @Override
@@ -145,12 +143,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, Locatio
         fusedLocationClient.getLastLocation().addOnSuccessListener(new OnSuccessListener<Location>() {
             @Override
             public void onSuccess(Location location) {
-                LatLng latLng = new LatLng(location.getLatitude(),location.getLongitude());
-                mMainViewModel.setLatLng(latLng);
-
-                mLocation = location;
                 setNearbyPlaces(location);
-                getPlacesAround();
             }
         });
     }
@@ -163,8 +156,12 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, Locatio
                     && grantResults[1] == PackageManager.PERMISSION_GRANTED) {
 
                 Toast.makeText(getContext(), "Permission granted!", Toast.LENGTH_LONG).show();
-                requestPermissionLocation();
-
+                fusedLocationClient.getLastLocation().addOnSuccessListener(new OnSuccessListener<Location>() {
+                    @Override
+                    public void onSuccess(Location location) {
+                        setNearbyPlaces(location);
+                    }
+                });
             }
             // Cancelled or denied.
             else {
@@ -173,11 +170,29 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, Locatio
         }
     }
 
+    private void setNearbyPlaces(Location location) {
+
+        if (mPlacesApi.getPlaces() == null){
+            mPlacesApi.setLocation(location);
+            mMainViewModel.setLocation(location);
+            getPlacesAround();
+        }else if (location.distanceTo(mPlacesApi.getLocation()) > 100){                              // si on se déplace de 500m
+            mPlacesApi.setLocation(location);
+            mMainViewModel.setLocation(location);
+            getPlacesAround();
+        }else {
+            showNearbyPlaces();
+        }
+    }
+
     private void getPlacesAround(){
         // Use fields to define the data types to return.
         List<Place.Field> placeFields = Arrays.asList(
                 Place.Field.NAME,
                 Place.Field.TYPES,
+                Place.Field.ADDRESS,
+                Place.Field.ID,
+                Place.Field.PHOTO_METADATAS,
                 Place.Field.LAT_LNG);
 
         // Use the builder to create a FindCurrentPlaceRequest.
@@ -192,18 +207,22 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, Locatio
                 public void onComplete(@NonNull Task<FindCurrentPlaceResponse> task) {
                     if (task.isSuccessful()) {
                         FindCurrentPlaceResponse response = task.getResult();
-                        assert response != null;
-                        for (PlaceLikelihood placeLikelihood : response.getPlaceLikelihoods()) {
-                            Log.i(TAG, String.format("Place '%s' has likelihood: %f",
-                                    placeLikelihood.getPlace().getName(),
-                                    placeLikelihood.getLikelihood()));
-                            placeLikelihood.getPlace().getTypes();
+                        if (response != null){
+                            List<Place> placesList = takeOnlyRestaurant(response.getPlaceLikelihoods());
+                            if (placesList.isEmpty()){
+                                Toast.makeText(getContext(), "No Places Found", Toast.LENGTH_LONG).show();
+                                myProgress.dismiss();
+                            }else {
+                                mPlacesApi.setPlaces(placesList);
+                                showNearbyPlaces();
+                            }
                         }
                     } else {
                         Exception exception = task.getException();
                         if (exception instanceof ApiException) {
                             ApiException apiException = (ApiException) exception;
                             Log.e(TAG, "Place not found: " + apiException.getStatusCode());
+                            myProgress.dismiss();
                         }
                     }
                 }
@@ -213,39 +232,50 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, Locatio
         }
     }
 
-    private void setNearbyPlaces(Location location) {
-
-        if (mPlacesApi.getNearbyPlaceModelList() == null){
-            mMainViewModel.setLocation(location);
-            mPlacesApi.setListPlaces(location.getLatitude(),location.getLongitude(), mMap);
-        }else {
-            showNearbyPlaces();
+    private List<Place> takeOnlyRestaurant(List<PlaceLikelihood> placeLikelihoods) {
+        List<Place> places = new ArrayList<>();
+        for (PlaceLikelihood placeLikelihood : placeLikelihoods){
+            if (placeLikelihood.getPlace().getTypes() != null &&
+                    placeLikelihood.getPlace().getTypes().contains(Place.Type.RESTAURANT)){
+                places.add(placeLikelihood.getPlace());
+            }
         }
+        return places;
     }
 
     private void showNearbyPlaces() {
 
-        for (PlaceModel placeModel : mPlacesApi.getNearbyPlaceModelList()) {
+        for (Place placeModel : mPlacesApi.getPlaces()) {
 
             MarkerOptions markerOptions = new MarkerOptions();
 
-            double lat = Double.parseDouble( placeModel.getLat() );
-            double lng = Double.parseDouble( placeModel.getLongit() );
+            if (placeModel.getTypes().contains(Place.Type.RESTAURANT)){
 
-            LatLng latLng = new LatLng( lat, lng);
+                markerOptions.position(placeModel.getLatLng());
+                markerOptions.title(placeModel.getName());
+                markerOptions.snippet(placeModel.getAddress());
+                markerOptions.icon(BitmapDescriptorFactory.defaultMarker());
 
-            markerOptions.position(latLng);
-            markerOptions.title(placeModel.getName());
-            markerOptions.snippet(placeModel.getAdresse());
-            markerOptions.icon(BitmapDescriptorFactory.defaultMarker());
-
-            Marker marker = mMap.addMarker(markerOptions);
-            marker.setTag(placeModel.getReference());
-            mMap.moveCamera(CameraUpdateFactory.newLatLng(latLng));
-            mMap.animateCamera(CameraUpdateFactory.zoomTo(10));
-            mMap.setOnInfoWindowClickListener(this);
+                Marker marker = mMap.addMarker(markerOptions);
+                marker.setTag(placeModel.getId());
+            }
         }
+        LatLng latLng = new LatLng(mPlacesApi.getLocation().getLatitude(),mPlacesApi.getLocation().getLongitude());
+        mMap.moveCamera(CameraUpdateFactory.newLatLng(latLng));
+        mMap.animateCamera(CameraUpdateFactory.zoomTo(5));
+        mMap.setOnInfoWindowClickListener(this);
         myProgress.dismiss();
+    }
+
+    private void showProgressBar() {
+        // Create Progress Bar.
+        myProgress = new ProgressDialog(mContext);
+        myProgress.setTitle("Fetching nearby restaurants ...");
+        myProgress.setMessage("Please wait...");
+        myProgress.setCancelable(false);
+        myProgress.setCanceledOnTouchOutside(false);
+        // Display Progress Bar.
+        myProgress.show();
     }
 
     @Override

@@ -15,7 +15,7 @@ public class MessageHelper {
 
     // --- COLLECTION REFERENCE ---
 
-    public static CollectionReference getChatCollection(){
+    private static CollectionReference getChatCollection(){
         return FirebaseFirestore.getInstance().collection(COLLECTION_NAME);
     }
 

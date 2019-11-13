@@ -7,6 +7,7 @@ import androidx.lifecycle.ViewModel;
 
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.libraries.places.api.net.PlacesClient;
 
 import java.math.RoundingMode;
 import java.text.DecimalFormat;
@@ -18,12 +19,21 @@ public class MainViewModel extends ViewModel {
     private GoogleMap mMap;
     private LatLng mLatLng;
     private Location mLocation;
+    private PlacesClient mPlacesClient;
 
     public MainViewModel() {
         mFragments = new Fragment[] {null,null,null};
         mMap = null;
         mLatLng = null;
         mLocation = null;
+    }
+
+    public PlacesClient getPlacesClient() {
+        return mPlacesClient;
+    }
+
+    public void setPlacesClient(PlacesClient placesClient) {
+        mPlacesClient = placesClient;
     }
 
     public Fragment[] getFragments() {
@@ -66,11 +76,11 @@ public class MainViewModel extends ViewModel {
         mLocation = location;
     }
 
-    public String getDistanceBetween(double lat, double longit) {
+    public String getDistanceBetween(LatLng point) {
 
         Location endPoint = new Location("locationA");
-        endPoint.setLatitude(lat);
-        endPoint.setLongitude(longit);
+        endPoint.setLatitude(point.latitude);
+        endPoint.setLongitude(point.longitude);
         double distanceTo = mLocation.distanceTo(endPoint);
         String distanceToStr;
         if (distanceTo >= 1000){

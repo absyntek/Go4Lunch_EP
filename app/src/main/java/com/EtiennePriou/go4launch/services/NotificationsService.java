@@ -7,7 +7,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.media.RingtoneManager;
 import android.os.Build;
-import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.core.app.NotificationCompat;
@@ -16,7 +15,6 @@ import com.EtiennePriou.go4launch.R;
 import com.EtiennePriou.go4launch.models.Workmate;
 import com.EtiennePriou.go4launch.services.firebase.helpers.PlaceHelper;
 import com.EtiennePriou.go4launch.services.firebase.helpers.UserHelper;
-import com.EtiennePriou.go4launch.ui.MainActivity;
 import com.EtiennePriou.go4launch.ui.details.DetailPlaceActivity;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.auth.FirebaseAuth;
@@ -24,8 +22,6 @@ import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
 import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.messaging.RemoteMessage;
-
-import java.util.List;
 
 public class NotificationsService extends FirebaseMessagingService {
 
@@ -82,7 +78,7 @@ public class NotificationsService extends FirebaseMessagingService {
 
         // 1 - Create an Intent that will be shown when user will click on the Notification
         Intent intent = new Intent(this, DetailPlaceActivity.class);
-        intent.putExtra("placeRef", placeRef);
+        intent.putExtra("placeReference",placeRef);
         PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_ONE_SHOT);
 
         // 2 - Create a Style for the Notification

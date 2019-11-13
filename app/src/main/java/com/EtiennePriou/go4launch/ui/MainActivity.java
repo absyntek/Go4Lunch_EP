@@ -16,8 +16,10 @@ import com.bumptech.glide.request.RequestOptions;
 import com.google.android.gms.common.api.Status;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.libraries.places.api.Places;
+import com.google.android.libraries.places.api.model.AutocompletePrediction;
 import com.google.android.libraries.places.api.model.Place;
 import com.google.android.libraries.places.api.model.TypeFilter;
+import com.google.android.libraries.places.api.net.PlacesClient;
 import com.google.android.libraries.places.widget.Autocomplete;
 import com.google.android.libraries.places.widget.AutocompleteActivity;
 import com.google.android.libraries.places.widget.model.AutocompleteActivityMode;
@@ -189,12 +191,13 @@ public class MainActivity extends BaseActivity
         if (search){
             // Set the fields to specify which types of place data to
             // return after the user has made a selection.
-            List<Place.Field> fields = Arrays.asList(Place.Field.ID, Place.Field.NAME);
+            List<Place.Field> fields = Arrays.asList(Place.Field.ID, Place.Field.NAME, Place.Field.TYPES);
 
             // Start the autocomplete intent.
             Intent intent = new Autocomplete.IntentBuilder(
                     AutocompleteActivityMode.OVERLAY, fields)
                     .setTypeFilter(TypeFilter.ESTABLISHMENT)
+                    .setTypeFilter(TypeFilter.REGIONS)
                     .setCountry("FR")
                     .build(this);
             startActivityForResult(intent, AUTOCOMPLETE_REQUEST_CODE);

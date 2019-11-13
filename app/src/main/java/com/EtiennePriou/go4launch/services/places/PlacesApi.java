@@ -1,9 +1,12 @@
 package com.EtiennePriou.go4launch.services.places;
 
-import android.content.Context;
+
+import android.location.Location;
 
 import com.EtiennePriou.go4launch.models.PlaceModel;
 import com.google.android.gms.maps.GoogleMap;
+import com.google.android.libraries.places.api.model.Place;
+import com.google.android.libraries.places.api.model.PlaceLikelihood;
 import com.google.android.libraries.places.api.net.PlacesClient;
 
 import java.util.List;
@@ -22,6 +25,11 @@ public interface PlacesApi {
 
     void setUrlNearbyPlace(double latitude , double longitude);
 
+    void setPlaces(List<Place> places);
+
+    void setLocation(Location location);
+
+    void setPlacesClient(PlacesClient placesClient);
 
     /*
      SETTERS
@@ -30,7 +38,13 @@ public interface PlacesApi {
 
     List<PlaceModel> getNearbyPlaceModelList();
 
-    PlaceModel getPlaceByReference(String reference);
+    Place getPlaceByReference(String reference);
 
     String getUrlNearbyPlace();
+
+    List<Place> getPlaces();
+
+    Location getLocation();
+
+    PlacesClient getPlacesClient();
 }

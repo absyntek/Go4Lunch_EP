@@ -18,7 +18,6 @@ import com.EtiennePriou.go4launch.services.firebase.helpers.UserHelper;
 import com.EtiennePriou.go4launch.ui.MainActivity;
 import com.firebase.ui.auth.AuthUI;
 import com.firebase.ui.auth.IdpResponse;
-import com.firebase.ui.auth.data.model.User;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.auth.FirebaseAuth;
@@ -41,7 +40,7 @@ public class SplashActivity extends AppCompatActivity {
 
         ImageView logo = findViewById(R.id.imgLogoSplash);
 
-        FirebaseAuth.getInstance().signOut();
+        //TODO Login if connect
 
         int fadeTimeOut = 2000;
         new Handler().postDelayed(new Runnable() {

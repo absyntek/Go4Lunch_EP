@@ -3,14 +3,19 @@ package com.EtiennePriou.go4launch.ui.details;
 import com.EtiennePriou.go4launch.base.BaseActivity;
 import com.EtiennePriou.go4launch.di.DI;
 import com.EtiennePriou.go4launch.di.ViewModelFactory;
-import com.EtiennePriou.go4launch.models.PlaceModel;
 import com.EtiennePriou.go4launch.models.Workmate;
 import com.EtiennePriou.go4launch.services.firebase.helpers.PlaceHelper;
 import com.EtiennePriou.go4launch.services.firebase.helpers.UserHelper;
+import com.EtiennePriou.go4launch.services.places.PlacesApi;
+import com.EtiennePriou.go4launch.services.utils.DetailHelper;
 import com.EtiennePriou.go4launch.ui.fragments.workmates_list.MyWorkmateRecyclerViewAdapter;
 import com.bumptech.glide.Glide;
+import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.libraries.places.api.model.Place;
+import com.google.android.libraries.places.api.net.FetchPhotoResponse;
+import com.google.android.libraries.places.api.net.FetchPlaceResponse;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import androidx.annotation.NonNull;
@@ -23,6 +28,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import android.Manifest;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Build;
 import android.util.Log;
@@ -55,7 +61,8 @@ public class DetailPlaceActivity extends BaseActivity {
     private RecyclerView mRecyclerView;
     private FloatingActionButton fab;
 
-    private PlaceModel mPlaceModel;
+    private PlacesApi mPlacesApi;
+    private Place mPlaceModel, mPlaceDetails;
     private String placeRef;
     private Workmate currentUser;
     private int impToFinish = 0;
@@ -85,29 +92,54 @@ public class DetailPlaceActivity extends BaseActivity {
 
     @Override
     protected void withOnCreate() {
+        mPlacesApi = DI.getServiceApiPlaces();
         configureViewModel();
 
         placeRef = getIntent().getStringExtra(PLACEREFERENCE);
         mPlaceModel = mPlacesApi.getPlaceByReference(placeRef);
+        getPlaceDetails();
+    }
 
-        if (mDetailsViewModel.getFav() == null) checkFav();
-        else setBarButton();
+    private void getPlaceDetails () {
 
-        setFabButton();
+        DetailHelper.getDetails(mPlaceModel, mPlacesApi.getPlacesClient()).addOnSuccessListener(new OnSuccessListener<FetchPlaceResponse>() {
+            @Override
+            public void onSuccess(FetchPlaceResponse response) {
+                Place place = response.getPlace();
+                Log.i("test", "Place found: " + place.getName());
+                mPlaceDetails = place;
+
+                if (mDetailsViewModel.getFav() == null) checkFav();
+                else setBarButton();
+
+                setFabButton();
 
 
-        if (mDetailsViewModel.getWorkmatesThisPlace() == null){
-            mDetailsViewModel.setWorkmatesThisPlace(new ArrayList<Workmate>());
-            checkWorkmateComeHere();
-        }else{
-            if (mDetailsViewModel.getWorkmatesThisPlace().isEmpty()) {
-                changeUiIfNoWorkmateHere();
-            }else{
-                setUpRecyclerView();
+                if (mDetailsViewModel.getWorkmatesThisPlace() == null){
+                    mDetailsViewModel.setWorkmatesThisPlace(new ArrayList<Workmate>());
+                    checkWorkmateComeHere();
+                }else{
+                    if (mDetailsViewModel.getWorkmatesThisPlace().isEmpty()) {
+                        changeUiIfNoWorkmateHere();
+                    }else{
+                        setUpRecyclerView();
+                    }
+                }
+
+                updateUi();
             }
-        }
-
-        updateUi();
+        }).addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception exception) {
+                if (exception instanceof ApiException) {
+                    ApiException apiException = (ApiException) exception;
+                    int statusCode = apiException.getStatusCode();
+                    // Handle error with given status code.
+                    Log.e("test", "Place not found: " + exception.getMessage());
+                    mPlaceDetails = null;
+                }
+            }
+        });
     }
 
     private void configureViewModel(){
@@ -134,14 +166,14 @@ public class DetailPlaceActivity extends BaseActivity {
 
     private void setBarButton() {
 
-        if (mPlaceModel.getPhonenumber() == null || mPlaceModel.getPhonenumber().isEmpty()){
+        if (mPlaceDetails.getPhoneNumber() == null || mPlaceDetails.getPhoneNumber().isEmpty()){
             mbtnCall.setBackgroundColor(getResources().getColor(R.color.grey)); //TODO Change color icon
         }else{
             mbtnCall.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
                     Intent callIntent = new Intent(Intent.ACTION_CALL);
-                    callIntent.setData(Uri.parse("tel:"+mPlaceModel.getPhonenumber()));
+                    callIntent.setData(Uri.parse("tel:"+mPlaceDetails.getPhoneNumber()));
 
                     if (ActivityCompat.checkSelfPermission(DetailPlaceActivity.this,
                             Manifest.permission.CALL_PHONE) != PackageManager.PERMISSION_GRANTED){
@@ -177,14 +209,14 @@ public class DetailPlaceActivity extends BaseActivity {
             }
         });
 
-        if (mPlaceModel.getWebSite() == null || mPlaceModel.getWebSite().isEmpty()){
+        if (mPlaceDetails.getWebsiteUri() == null){
                 mbtnWebsite.setBackgroundColor(getResources().getColor(R.color.grey));
         }else {
             mbtnWebsite.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
                     Intent webIntent = new Intent(Intent.ACTION_VIEW);
-                    webIntent.setData(Uri.parse(mPlaceModel.getWebSite()));
+                    webIntent.setData(mPlaceDetails.getWebsiteUri());
                     startActivity(webIntent);
                 }
             });
@@ -225,11 +257,15 @@ public class DetailPlaceActivity extends BaseActivity {
     }
 
     private void updateUi() {
-        if (mPlaceModel.getImgReference() != null) {
-            Glide.with(mimgDetailsTop).load(mPlaceModel.getPhotoUri()).into(mimgDetailsTop);
-        }
+        DetailHelper.getPhoto(mPlaceModel, mPlacesApi.getPlacesClient()).addOnSuccessListener(new OnSuccessListener<FetchPhotoResponse>() {
+            @Override
+            public void onSuccess(FetchPhotoResponse fetchPhotoResponse) {
+                Bitmap bitmap = fetchPhotoResponse.getBitmap();
+                Glide.with(mimgDetailsTop).load(bitmap).into(mimgDetailsTop);
+            }
+        });
         mtvPlaceName.setText(mPlaceModel.getName());
-        mtvPlaceAdresse.setText(mPlaceModel.getAdresse());
+        mtvPlaceAdresse.setText(mPlaceModel.getAddress());
     }
 
     private void setUpRecyclerView (){
@@ -245,7 +281,7 @@ public class DetailPlaceActivity extends BaseActivity {
                     public void onSuccess(DocumentSnapshot documentSnapshot) {
 
                         currentUser = documentSnapshot.toObject(Workmate.class);
-                        if (currentUser.getPlaceToGo() != null && currentUser.getPlaceToGo().get("placeRef").toString().equals(mPlaceModel.getReference())){
+                        if (currentUser.getPlaceToGo() != null && currentUser.getPlaceToGo().get("placeRef").toString().equals(mPlaceModel.getId())){
                             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                                 fab.getDrawable().setTint(getResources().getColor(R.color.green)); //TOdo Change color
                             }
@@ -261,7 +297,7 @@ public class DetailPlaceActivity extends BaseActivity {
                                 Map<String, Object> placeToGo = new HashMap<>();
                                 if (currentUser.getPlaceToGo() != null && currentUser.getPlaceToGo().get("placeRef").toString().equals(placeRef)){
 
-                                    PlaceHelper.deleteUserWhoComming(currentUser.getUid(),mPlaceModel.getReference());
+                                    PlaceHelper.deleteUserWhoComming(currentUser.getUid(),mPlaceModel.getId());
                                     UserHelper.updatePlaceToGo(currentUser.getUid(),null);
 
                                     currentUser.setPlaceToGo(null);
@@ -274,10 +310,10 @@ public class DetailPlaceActivity extends BaseActivity {
                                 }else if (currentUser.getPlaceToGo() != null && !currentUser.getPlaceToGo().get("placeRef").toString().equals(placeRef)){
                                     placeToGo.put("placeRef",placeRef);
                                     placeToGo.put("placeName",mPlaceModel.getName());
-                                    placeToGo.put("adresse", mPlaceModel.getAdresse());
+                                    placeToGo.put("adresse", mPlaceModel.getAddress());
 
                                     PlaceHelper.deleteUserWhoComming(currentUser.getUid(),currentUser.getPlaceToGo().get("placeRef").toString());
-                                    PlaceHelper.createWhoComing(mPlaceModel.getReference(),currentUser.getUid());
+                                    PlaceHelper.createWhoComing(mPlaceModel.getId(),currentUser.getUid());
                                     UserHelper.updatePlaceToGo(currentUser.getUid(),placeToGo);
 
                                     currentUser.setPlaceToGo(placeToGo);
@@ -290,9 +326,9 @@ public class DetailPlaceActivity extends BaseActivity {
                                 }else{
                                     placeToGo.put("placeRef",placeRef);
                                     placeToGo.put("placeName",mPlaceModel.getName());
-                                    placeToGo.put("adresse", mPlaceModel.getAdresse());
+                                    placeToGo.put("adresse", mPlaceModel.getAddress());
 
-                                    PlaceHelper.createWhoComing(mPlaceModel.getReference(),currentUser.getUid());
+                                    PlaceHelper.createWhoComing(mPlaceModel.getId(),currentUser.getUid());
                                     UserHelper.updatePlaceToGo(currentUser.getUid(),placeToGo);
 
                                     currentUser.setPlaceToGo(placeToGo);
