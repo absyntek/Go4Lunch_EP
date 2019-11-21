@@ -29,9 +29,6 @@ public class Workmate {
     public Map<String, Object> getPlaceToGo() { return placeToGo; }
 
     // --- SETTERS ---
-    public void setUsername(String username) { this.username = username; }
-    public void setUid(String uid) { this.uid = uid; }
-    public void setUrlPicture(String urlPicture) { this.urlPicture = urlPicture; }
     public void setPlaceToGo(Map<String, Object> placeToGo) {
         this.placeToGo = placeToGo;
     }

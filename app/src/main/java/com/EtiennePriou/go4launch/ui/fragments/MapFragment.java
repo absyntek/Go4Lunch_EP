@@ -23,8 +23,6 @@ import android.widget.Toast;
 
 import com.EtiennePriou.go4launch.R;
 import com.EtiennePriou.go4launch.di.DI;
-import com.EtiennePriou.go4launch.events.ReceiveListPlace;
-import com.EtiennePriou.go4launch.models.PlaceModel;
 import com.EtiennePriou.go4launch.services.places.PlacesApi;
 
 import com.EtiennePriou.go4launch.ui.MainViewModel;
@@ -50,9 +48,6 @@ import com.google.android.libraries.places.api.model.PlaceLikelihood;
 import com.google.android.libraries.places.api.net.FindCurrentPlaceRequest;
 import com.google.android.libraries.places.api.net.FindCurrentPlaceResponse;
 import com.google.android.libraries.places.api.net.PlacesClient;
-
-import org.greenrobot.eventbus.EventBus;
-import org.greenrobot.eventbus.Subscribe;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -262,7 +257,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, Locatio
         }
         LatLng latLng = new LatLng(mPlacesApi.getLocation().getLatitude(),mPlacesApi.getLocation().getLongitude());
         mMap.moveCamera(CameraUpdateFactory.newLatLng(latLng));
-        mMap.animateCamera(CameraUpdateFactory.zoomTo(5));
+        mMap.animateCamera(CameraUpdateFactory.zoomTo(15));
         mMap.setOnInfoWindowClickListener(this);
         myProgress.dismiss();
     }
@@ -276,23 +271,6 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, Locatio
         myProgress.setCanceledOnTouchOutside(false);
         // Display Progress Bar.
         myProgress.show();
-    }
-
-    @Override
-    public void onStart() {
-        super.onStart();
-        EventBus.getDefault().register(this);
-    }
-
-    @Override
-    public void onStop() {
-        super.onStop();
-        EventBus.getDefault().unregister(this);
-    }
-
-    @Subscribe
-    public void onReceiveList(ReceiveListPlace event){
-        showNearbyPlaces();
     }
 
     @Override

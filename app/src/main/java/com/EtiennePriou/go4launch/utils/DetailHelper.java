@@ -1,4 +1,4 @@
-package com.EtiennePriou.go4launch.services.utils;
+package com.EtiennePriou.go4launch.utils;
 
 import com.google.android.gms.tasks.Task;
 import com.google.android.libraries.places.api.model.PhotoMetadata;
@@ -23,12 +23,20 @@ public class DetailHelper {
         return placesClient.fetchPhoto(photoRequest);
     }
 
-    public static Task<FetchPlaceResponse> getDetails (Place placeModel, PlacesClient placesClient){
+    public static Task<FetchPlaceResponse> getDetails (String placeRef, PlacesClient placesClient){
         // Specify the fields to return.
-        List<Place.Field> placeFields = Arrays.asList(Place.Field.ID, Place.Field.PHONE_NUMBER, Place.Field.WEBSITE_URI);
+        List<Place.Field> placeFields = Arrays.asList(
+                Place.Field.PHONE_NUMBER,
+                Place.Field.WEBSITE_URI,
+                Place.Field.NAME,
+                Place.Field.TYPES,
+                Place.Field.ADDRESS,
+                Place.Field.ID,
+                Place.Field.PHOTO_METADATAS,
+                Place.Field.LAT_LNG);
 
         // Construct a request object, passing the place ID and fields array.
-        final FetchPlaceRequest request = FetchPlaceRequest.newInstance(placeModel.getId(), placeFields);
+        final FetchPlaceRequest request = FetchPlaceRequest.newInstance(placeRef, placeFields);
 
         return placesClient.fetchPlace(request);
     }

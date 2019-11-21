@@ -29,16 +29,21 @@
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
 
-            <ImageView
-                android:id="@+id/imgStarDetails"
-                android:layout_width="24dp"
-                android:layout_height="24dp"
+            <RatingBar
+                android:id="@+id/ratingPlaceNote"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                style="?android:attr/ratingBarStyleSmall"
                 android:layout_marginStart="8dp"
-                android:visibility="invisible"
+                android:numStars="5"
+                android:stepSize="1"
+                android:secondaryProgressTint="@color/colorPrimarySoft"
+                android:progressTint="@color/yellow"
+                android:progressBackgroundTint="@color/colorPrimarySoft"
                 app:layout_constraintBottom_toBottomOf="@+id/tvNameDetails"
                 app:layout_constraintStart_toEndOf="@+id/tvNameDetails"
-                app:layout_constraintTop_toTopOf="@+id/tvNameDetails"
-                app:srcCompat="@android:drawable/btn_star_big_on" />
+                app:layout_constraintTop_toTopOf="@+id/tvNameDetails"/>
+
 
             <TextView
                 android:id="@+id/tvAdresseDetails"

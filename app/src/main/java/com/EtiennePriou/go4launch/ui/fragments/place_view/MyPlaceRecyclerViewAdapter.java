@@ -1,7 +1,6 @@
 package com.EtiennePriou.go4launch.ui.fragments.place_view;
 
 import androidx.annotation.NonNull;
-import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.content.Context;
@@ -12,17 +11,16 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.RatingBar;
 import android.widget.TextView;
 
 import com.EtiennePriou.go4launch.R;
 import com.EtiennePriou.go4launch.di.DI;
-import com.EtiennePriou.go4launch.models.PlaceModel;
 import com.EtiennePriou.go4launch.services.firebase.helpers.PlaceHelper;
 import com.EtiennePriou.go4launch.services.places.PlacesApi;
-import com.EtiennePriou.go4launch.services.utils.DetailHelper;
+import com.EtiennePriou.go4launch.utils.DetailHelper;
 import com.EtiennePriou.go4launch.ui.MainViewModel;
 import com.EtiennePriou.go4launch.ui.details.DetailPlaceActivity;
-import com.bumptech.glide.Glide;
 import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
@@ -30,9 +28,9 @@ import com.google.android.libraries.places.api.model.PhotoMetadata;
 import com.google.android.libraries.places.api.model.Place;
 import com.google.android.libraries.places.api.net.FetchPhotoRequest;
 import com.google.android.libraries.places.api.net.FetchPhotoResponse;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
 
-import java.util.BitSet;
 import java.util.List;
 
 public class MyPlaceRecyclerViewAdapter extends RecyclerView.Adapter<MyPlaceRecyclerViewAdapter.ViewHolder> {
@@ -117,6 +115,27 @@ public class MyPlaceRecyclerViewAdapter extends RecyclerView.Adapter<MyPlaceRecy
             }
         });
 
+        PlaceHelper.getNotes(placeModel.getId()).addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
+            @Override
+            public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
+                int placeNote = 0;
+                if (queryDocumentSnapshots != null || queryDocumentSnapshots.size() > 0){
+                    int divisor = queryDocumentSnapshots.size();
+                    int noteToDivise = 0;
+                    for (DocumentSnapshot note : queryDocumentSnapshots){
+                        int noteTmp = note.get("note",Integer.class);
+                        noteToDivise += noteTmp;
+                    }
+                    if (noteToDivise < 1){
+                        placeNote = 0;
+                    }else{
+                        placeNote = Math.round(noteToDivise/divisor);
+                    }
+                    holder.mRatingBar.setRating(placeNote);
+                }
+            }
+        });
+
         // -- set listener for opening detail activity --
         holder.mView.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -137,6 +156,7 @@ public class MyPlaceRecyclerViewAdapter extends RecyclerView.Adapter<MyPlaceRecy
         private final View mView;
         private final TextView mtvNamePlace, mtvAdresse, mtvIsOpen, mtvNbrWorkmates, mtvDistance;
         private final ImageView imgPlaceListe;
+        private final RatingBar mRatingBar;
 
 
         private ViewHolder(View view) {
@@ -144,10 +164,11 @@ public class MyPlaceRecyclerViewAdapter extends RecyclerView.Adapter<MyPlaceRecy
             mView = view;
             mtvNamePlace = view.findViewById(R.id.tvNamePlace);
             mtvAdresse = view.findViewById(R.id.tvAdressePlace);
-            mtvIsOpen = mView.findViewById(R.id.tvIsOpen);
-            mtvNbrWorkmates = mView.findViewById(R.id.tvWorkmateComming);
-            mtvDistance = mView.findViewById(R.id.tvDistance);
-            imgPlaceListe = mView.findViewById(R.id.imgPlace);
+            mtvIsOpen = view.findViewById(R.id.tvIsOpen);
+            mtvNbrWorkmates = view.findViewById(R.id.tvWorkmateComming);
+            mtvDistance = view.findViewById(R.id.tvDistance);
+            imgPlaceListe = view.findViewById(R.id.imgPlace);
+            mRatingBar = view.findViewById(R.id.ratingBarList);
             mContext = view.getContext();
         }
 

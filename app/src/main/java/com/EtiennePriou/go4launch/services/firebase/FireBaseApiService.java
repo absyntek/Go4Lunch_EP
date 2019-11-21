@@ -45,12 +45,13 @@ public class FireBaseApiService implements FireBaseApi{
     @Override
     public void setWorkmatesList(List<Workmate> workmates) {
         this.mWorkmates = workmates;
+        setWorkmateListNoMe ();
     }
-    @Override
-    public void setWorkmateListNoMe (String uid){
+
+    private void setWorkmateListNoMe (){
         mWorkmatesNoMe = new ArrayList<>();
         for (Workmate workmate : mWorkmates){
-            if (!workmate.getUid().equals(uid)){
+            if (!workmate.getUid().equals(currentUser.getUid())){
                 mWorkmatesNoMe.add(workmate);
             }
         }

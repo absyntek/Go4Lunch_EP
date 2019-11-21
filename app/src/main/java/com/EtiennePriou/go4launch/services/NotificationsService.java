@@ -25,7 +25,11 @@ import com.google.firebase.messaging.RemoteMessage;
 
 public class NotificationsService extends FirebaseMessagingService {
 
-    private String placeRef,placeName,adresse,messageBody;
+    private String placeRef;
+    private String placeName;
+    private String adresse;
+    private String uid;
+    private Workmate workmate;
     QuerySnapshot listName;
 
     @Override
@@ -34,11 +38,11 @@ public class NotificationsService extends FirebaseMessagingService {
     }
 
     private void checkPlaceToGo(){
-        String uid = FirebaseAuth.getInstance().getUid();
+        uid = FirebaseAuth.getInstance().getUid();
         UserHelper.getUser(uid).addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
             @Override
             public void onSuccess(DocumentSnapshot documentSnapshot) {
-                Workmate workmate = documentSnapshot.toObject(Workmate.class);
+                workmate = documentSnapshot.toObject(Workmate.class);
                 if (workmate.getPlaceToGo() !=null){
                     placeRef = workmate.getPlaceToGo().get("placeRef").toString();
                     adresse = workmate.getPlaceToGo().get("adresse").toString();
@@ -54,52 +58,45 @@ public class NotificationsService extends FirebaseMessagingService {
             @Override
             public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
                 listName = queryDocumentSnapshots;
-                makeMessage(queryDocumentSnapshots.isEmpty());
+                makeMessage();
             }
         });
     }
 
-    private void makeMessage(Boolean isEmp) {
+    private void makeMessage() {
         StringBuilder nameMessage = new StringBuilder();
-        if (isEmp){
-            nameMessage.append(", but no one is coming ;(");
+        if (listName.size() == 1){
+            nameMessage.append(", but you are the only one to eat there ;(");
         }else{
-            nameMessage.append("with : \n");
+            nameMessage.append("\nwith : \n");
             for (DocumentSnapshot data : listName){
+                if (!data.get("uid").toString().equals(uid))
                 nameMessage.append("- " + data.get("name")+"\n");
             }
         }
-        messageBody = "Dont forget, you're going to" + placeName + nameMessage;
+        String messageBody = "Dont forget, you're going to :\n" + placeName + nameMessage + "\n" + adresse;
 
         sendVisualNotification(messageBody);
     }
 
     private void sendVisualNotification(String messageBody) {
 
-        // 1 - Create an Intent that will be shown when user will click on the Notification
         Intent intent = new Intent(this, DetailPlaceActivity.class);
         intent.putExtra("placeReference",placeRef);
         PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_ONE_SHOT);
 
-        // 2 - Create a Style for the Notification
-        NotificationCompat.InboxStyle inboxStyle = new NotificationCompat.InboxStyle();
-        inboxStyle.setBigContentTitle(getString(R.string.notification_title));
-        inboxStyle.addLine(messageBody);
-
-        // 3 - Create a Channel (Android 8)
         String channelId = getString(R.string.default_notification_channel_id);
 
-        // 4 - Build a Notification object
         NotificationCompat.Builder notificationBuilder =
                 new NotificationCompat.Builder(this, channelId)
                         .setSmallIcon(R.drawable.notext_logo200x200)
                         .setContentTitle(getString(R.string.app_name))
-                        .setTicker(getString(R.string.notification_title))
-                        .setContentText(messageBody)
+                        .setContentText(getString(R.string.notification_title))
+                        .setStyle(new NotificationCompat.BigTextStyle()
+                            .bigText(messageBody))
                         .setAutoCancel(true)
                         .setSound(RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION))
-                        .setContentIntent(pendingIntent)
-                        .setStyle(inboxStyle);
+                        .setContentIntent(pendingIntent);
 
         // 5 - Add the Notification to the Notification Manager and show it.
         NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);

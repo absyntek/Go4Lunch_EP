@@ -8,7 +8,6 @@ import java.util.List;
 
 public class DetailsViewModel extends ViewModel {
 
-    private Boolean isFav = null;
     private List<Workmate> mWorkmatesThisPlace = null;
 
     List<Workmate> getWorkmatesThisPlace() {
@@ -17,13 +16,5 @@ public class DetailsViewModel extends ViewModel {
 
     void setWorkmatesThisPlace(List<Workmate> workmatesThisPlace) {
         mWorkmatesThisPlace = workmatesThisPlace;
-    }
-
-    Boolean getFav() {
-        return isFav;
-    }
-
-    void setFav(Boolean fav) {
-        isFav = fav;
     }
 }

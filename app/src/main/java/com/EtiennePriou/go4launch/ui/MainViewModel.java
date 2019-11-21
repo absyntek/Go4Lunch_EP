@@ -3,6 +3,7 @@ package com.EtiennePriou.go4launch.ui;
 import android.location.Location;
 
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
 import com.google.android.gms.maps.GoogleMap;
@@ -20,6 +21,7 @@ public class MainViewModel extends ViewModel {
     private LatLng mLatLng;
     private Location mLocation;
     private PlacesClient mPlacesClient;
+    private MutableLiveData<String> currentName;
 
     public MainViewModel() {
         mFragments = new Fragment[] {null,null,null};
@@ -34,6 +36,17 @@ public class MainViewModel extends ViewModel {
 
     public void setPlacesClient(PlacesClient placesClient) {
         mPlacesClient = placesClient;
+    }
+
+    public MutableLiveData<String> getWorkmateSearch() {
+        if (currentName == null) {
+            currentName = new MutableLiveData<String>();
+        }
+        return currentName;
+    }
+
+    public void setCurrentName(String currentName) {
+        this.currentName.setValue(currentName);
     }
 
     public Fragment[] getFragments() {

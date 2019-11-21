@@ -21,5 +21,4 @@ public interface FireBaseApi {
     void setWorkmatesList(List<Workmate> workmates);
     void setCurrentUser(FirebaseUser currentUser);
     void setActualUser (Workmate actualUser);
-    void setWorkmateListNoMe(String uid);
 }

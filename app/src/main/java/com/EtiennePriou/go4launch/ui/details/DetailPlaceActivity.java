@@ -7,7 +7,7 @@ import com.EtiennePriou.go4launch.models.Workmate;
 import com.EtiennePriou.go4launch.services.firebase.helpers.PlaceHelper;
 import com.EtiennePriou.go4launch.services.firebase.helpers.UserHelper;
 import com.EtiennePriou.go4launch.services.places.PlacesApi;
-import com.EtiennePriou.go4launch.services.utils.DetailHelper;
+import com.EtiennePriou.go4launch.utils.DetailHelper;
 import com.EtiennePriou.go4launch.ui.fragments.workmates_list.MyWorkmateRecyclerViewAdapter;
 import com.bumptech.glide.Glide;
 import com.google.android.gms.common.api.ApiException;
@@ -26,15 +26,18 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.Manifest;
+import android.app.AlertDialog;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Build;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.RatingBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -51,20 +54,21 @@ import java.util.Objects;
 
 public class DetailPlaceActivity extends BaseActivity {
 
-    private final String TAG = "Error_DetailsActivity";
-
     private static final String PLACEREFERENCE = "placeReference";
 
-    private ImageView mimgNoOne, mimgDetailsTop, mimgStar;
+    private ImageView mimgNoOne, mimgDetailsTop;
+    private RatingBar mratingBarPlace, ratingBar;
     private TextView mtvNoOne, mtvPlaceName, mtvPlaceAdresse;
     private Button mbtnCall, mbtnLike, mbtnWebsite;
     private RecyclerView mRecyclerView;
     private FloatingActionButton fab;
+    private AlertDialog alertDialog;
 
     private PlacesApi mPlacesApi;
-    private Place mPlaceModel, mPlaceDetails;
+    private Place mPlaceDetails;
     private String placeRef;
     private Workmate currentUser;
+    private int placeNote;
     private int impToFinish = 0;
 
     private DetailsViewModel mDetailsViewModel;
@@ -78,7 +82,7 @@ public class DetailPlaceActivity extends BaseActivity {
     protected void setupUi() {
 
         mimgNoOne = findViewById(R.id.imgNoOne);
-        mimgStar = findViewById(R.id.imgStarDetails);
+        mratingBarPlace = findViewById(R.id.ratingPlaceNote);
         mimgDetailsTop = findViewById(R.id.imgDetailsTop);
         mtvNoOne = findViewById(R.id.tvNoOne);
         mtvPlaceName = findViewById(R.id.tvNameDetails);
@@ -96,24 +100,26 @@ public class DetailPlaceActivity extends BaseActivity {
         configureViewModel();
 
         placeRef = getIntent().getStringExtra(PLACEREFERENCE);
-        mPlaceModel = mPlacesApi.getPlaceByReference(placeRef);
         getPlaceDetails();
+    }
+
+    private void configureViewModel(){
+        ViewModelFactory viewModelFactory = DI.provideViewModelFactory();
+        mDetailsViewModel = ViewModelProviders.of(this, viewModelFactory).get(DetailsViewModel.class);
     }
 
     private void getPlaceDetails () {
 
-        DetailHelper.getDetails(mPlaceModel, mPlacesApi.getPlacesClient()).addOnSuccessListener(new OnSuccessListener<FetchPlaceResponse>() {
+        DetailHelper.getDetails(placeRef, mPlacesApi.getPlacesClient()).addOnSuccessListener(new OnSuccessListener<FetchPlaceResponse>() {
             @Override
             public void onSuccess(FetchPlaceResponse response) {
                 Place place = response.getPlace();
                 Log.i("test", "Place found: " + place.getName());
                 mPlaceDetails = place;
 
-                if (mDetailsViewModel.getFav() == null) checkFav();
-                else setBarButton();
-
+                checkNote();
+                setMiddleBarButtons();
                 setFabButton();
-
 
                 if (mDetailsViewModel.getWorkmatesThisPlace() == null){
                     mDetailsViewModel.setWorkmatesThisPlace(new ArrayList<Workmate>());
@@ -142,30 +148,43 @@ public class DetailPlaceActivity extends BaseActivity {
         });
     }
 
-    private void configureViewModel(){
-        ViewModelFactory viewModelFactory = DI.provideViewModelFactory();
-        mDetailsViewModel = ViewModelProviders.of(this, viewModelFactory).get(DetailsViewModel.class);
+    private void updateUi() {
+        DetailHelper.getPhoto(mPlaceDetails, mPlacesApi.getPlacesClient()).addOnSuccessListener(new OnSuccessListener<FetchPhotoResponse>() {
+            @Override
+            public void onSuccess(FetchPhotoResponse fetchPhotoResponse) {
+                Bitmap bitmap = fetchPhotoResponse.getBitmap();
+                Glide.with(mimgDetailsTop).load(bitmap).into(mimgDetailsTop);
+            }
+        });
+        mtvPlaceName.setText(mPlaceDetails.getName());
+        mtvPlaceAdresse.setText(mPlaceDetails.getAddress());
     }
 
-    private void checkFav (){
-        UserHelper.getSpecFavExist(mFireBaseApi.getCurrentUser().getUid(),placeRef)
-                .addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
-                    @Override
-                    public void onSuccess(DocumentSnapshot documentSnapshot) {
-                        mDetailsViewModel.setFav(documentSnapshot.exists());
-                        setBarButton();
+    private void checkNote(){
+        PlaceHelper.getNotes(placeRef).addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
+            @Override
+            public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
+                if (queryDocumentSnapshots != null || queryDocumentSnapshots.size() > 0){
+                    int divisor = queryDocumentSnapshots.size();
+                    int noteToDivise = 0;
+                    for (DocumentSnapshot note : queryDocumentSnapshots){
+                        int noteTmp = note.get("note",Integer.class);
+                        noteToDivise += noteTmp;
                     }
-        })
-                .addOnFailureListener(new OnFailureListener() {
-                    @Override
-                    public void onFailure(@NonNull Exception e) {
-                        Log.d(TAG, "onFailure: "+ e.getMessage());
+                    if (noteToDivise < 1){
+                        placeNote = 0;
+                    }else{
+                        placeNote = Math.round(noteToDivise/divisor);
                     }
+                    mratingBarPlace.setRating(placeNote);
+                }
+            }
         });
     }
 
-    private void setBarButton() {
+    private void setMiddleBarButtons() {
 
+        /* --- Phone Button --- */
         if (mPlaceDetails.getPhoneNumber() == null || mPlaceDetails.getPhoneNumber().isEmpty()){
             mbtnCall.setBackgroundColor(getResources().getColor(R.color.grey)); //TODO Change color icon
         }else{
@@ -184,31 +203,15 @@ public class DetailPlaceActivity extends BaseActivity {
             });
         }
 
-        if (mDetailsViewModel.getFav()){
-            mbtnLike.setBackgroundColor(getResources().getColor(R.color.green)); //TODO Change color icon
-            mimgStar.setVisibility(View.VISIBLE);
-        }else {
-            mbtnLike.setBackgroundColor(getResources().getColor(R.color.grey));
-            mimgStar.setVisibility(View.INVISIBLE);
-        }
+        /* --- Note Button --- */
         mbtnLike.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if (mDetailsViewModel.getFav()){
-                    UserHelper.deleteFav(mFireBaseApi.getCurrentUser().getUid(),placeRef);
-                    PlaceHelper.deleteUserInFav(mFireBaseApi.getCurrentUser().getUid(),placeRef);
-                    mimgStar.setVisibility(View.INVISIBLE);
-                    mDetailsViewModel.setFav(false);
-                }else{
-                    UserHelper.createUserFav(mFireBaseApi.getCurrentUser().getUid(),placeRef, mPlaceModel.getName());
-                    PlaceHelper.createFavorite(mFireBaseApi.getCurrentUser().getUid(),placeRef);
-                    mimgStar.setVisibility(View.VISIBLE);
-                    mbtnLike.setBackgroundColor(getResources().getColor(R.color.grey));
-                    mDetailsViewModel.setFav(true);
-                }
+                getMyNote();
             }
         });
 
+        /* --- Web Button --- */
         if (mPlaceDetails.getWebsiteUri() == null){
                 mbtnWebsite.setBackgroundColor(getResources().getColor(R.color.grey));
         }else {
@@ -221,6 +224,62 @@ public class DetailPlaceActivity extends BaseActivity {
                 }
             });
         }
+    }
+
+    private void getMyNote(){
+        PlaceHelper.getMyNote(placeRef, mFireBaseApi.getCurrentUser().getUid()).addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
+            @Override
+            public void onSuccess(DocumentSnapshot documentSnapshot) {
+                if (documentSnapshot.getDouble("note") != null){
+                    int myNote = documentSnapshot.get("note", Integer.class);
+                    createDialogBox(myNote);
+                }else createDialogBox(0);
+            }
+        });
+    }
+
+    private void createDialogBox(int myNote) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            LayoutInflater inflater = this.getLayoutInflater();
+            builder.setView(inflater.inflate(R.layout.dialog_rating, null));
+            alertDialog = builder.create();
+            alertDialog.show();
+
+            ratingBar = alertDialog.findViewById(R.id.ratingBoxNote);
+            ratingBar.setMax(5);
+            ratingBar.setRating(myNote);
+
+            Button valid = alertDialog.findViewById(R.id.ratingBoxValid);
+            valid.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    if (ratingBar.getRating() > 0){
+                        int note = Math.round(ratingBar.getRating());
+                        sendNote(note);
+                        checkNote();
+                        alertDialog.dismiss();
+                    }
+                }
+            });
+
+            Button cancel = alertDialog.findViewById(R.id.ratingBoxCancel);
+            cancel.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    alertDialog.dismiss();
+                }
+            });
+        }
+    }
+
+    private void sendNote(int note) {
+        PlaceHelper.createFavorite(mFireBaseApi.getCurrentUser().getUid(),placeRef,note).addOnSuccessListener(new OnSuccessListener<Void>() {
+            @Override
+            public void onSuccess(Void aVoid) {
+                Toast.makeText(DetailPlaceActivity.this, "note send", Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
     private void checkWorkmateComeHere() {
@@ -256,18 +315,6 @@ public class DetailPlaceActivity extends BaseActivity {
         });
     }
 
-    private void updateUi() {
-        DetailHelper.getPhoto(mPlaceModel, mPlacesApi.getPlacesClient()).addOnSuccessListener(new OnSuccessListener<FetchPhotoResponse>() {
-            @Override
-            public void onSuccess(FetchPhotoResponse fetchPhotoResponse) {
-                Bitmap bitmap = fetchPhotoResponse.getBitmap();
-                Glide.with(mimgDetailsTop).load(bitmap).into(mimgDetailsTop);
-            }
-        });
-        mtvPlaceName.setText(mPlaceModel.getName());
-        mtvPlaceAdresse.setText(mPlaceModel.getAddress());
-    }
-
     private void setUpRecyclerView (){
         mRecyclerView.setLayoutManager(new LinearLayoutManager(this));
         mRecyclerView.addItemDecoration(new DividerItemDecoration(this, DividerItemDecoration.VERTICAL));
@@ -281,7 +328,7 @@ public class DetailPlaceActivity extends BaseActivity {
                     public void onSuccess(DocumentSnapshot documentSnapshot) {
 
                         currentUser = documentSnapshot.toObject(Workmate.class);
-                        if (currentUser.getPlaceToGo() != null && currentUser.getPlaceToGo().get("placeRef").toString().equals(mPlaceModel.getId())){
+                        if (currentUser.getPlaceToGo() != null && currentUser.getPlaceToGo().get("placeRef").toString().equals(mPlaceDetails.getId())){
                             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                                 fab.getDrawable().setTint(getResources().getColor(R.color.green)); //TOdo Change color
                             }
@@ -297,7 +344,7 @@ public class DetailPlaceActivity extends BaseActivity {
                                 Map<String, Object> placeToGo = new HashMap<>();
                                 if (currentUser.getPlaceToGo() != null && currentUser.getPlaceToGo().get("placeRef").toString().equals(placeRef)){
 
-                                    PlaceHelper.deleteUserWhoComming(currentUser.getUid(),mPlaceModel.getId());
+                                    PlaceHelper.deleteUserWhoComming(currentUser.getUid(),mPlaceDetails.getId());
                                     UserHelper.updatePlaceToGo(currentUser.getUid(),null);
 
                                     currentUser.setPlaceToGo(null);
@@ -309,11 +356,11 @@ public class DetailPlaceActivity extends BaseActivity {
 
                                 }else if (currentUser.getPlaceToGo() != null && !currentUser.getPlaceToGo().get("placeRef").toString().equals(placeRef)){
                                     placeToGo.put("placeRef",placeRef);
-                                    placeToGo.put("placeName",mPlaceModel.getName());
-                                    placeToGo.put("adresse", mPlaceModel.getAddress());
+                                    placeToGo.put("placeName",mPlaceDetails.getName());
+                                    placeToGo.put("adresse", mPlaceDetails.getAddress());
 
                                     PlaceHelper.deleteUserWhoComming(currentUser.getUid(),currentUser.getPlaceToGo().get("placeRef").toString());
-                                    PlaceHelper.createWhoComing(mPlaceModel.getId(),currentUser.getUid());
+                                    PlaceHelper.createWhoComing(mPlaceDetails.getId(),currentUser.getUid(),currentUser.getUsername());
                                     UserHelper.updatePlaceToGo(currentUser.getUid(),placeToGo);
 
                                     currentUser.setPlaceToGo(placeToGo);
@@ -325,10 +372,10 @@ public class DetailPlaceActivity extends BaseActivity {
 
                                 }else{
                                     placeToGo.put("placeRef",placeRef);
-                                    placeToGo.put("placeName",mPlaceModel.getName());
-                                    placeToGo.put("adresse", mPlaceModel.getAddress());
+                                    placeToGo.put("placeName",mPlaceDetails.getName());
+                                    placeToGo.put("adresse", mPlaceDetails.getAddress());
 
-                                    PlaceHelper.createWhoComing(mPlaceModel.getId(),currentUser.getUid());
+                                    PlaceHelper.createWhoComing(mPlaceDetails.getId(), currentUser.getUid(), currentUser.getUsername());
                                     UserHelper.updatePlaceToGo(currentUser.getUid(),placeToGo);
 
                                     currentUser.setPlaceToGo(placeToGo);

@@ -16,10 +16,8 @@ import com.bumptech.glide.request.RequestOptions;
 import com.google.android.gms.common.api.Status;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.libraries.places.api.Places;
-import com.google.android.libraries.places.api.model.AutocompletePrediction;
 import com.google.android.libraries.places.api.model.Place;
 import com.google.android.libraries.places.api.model.TypeFilter;
-import com.google.android.libraries.places.api.net.PlacesClient;
 import com.google.android.libraries.places.widget.Autocomplete;
 import com.google.android.libraries.places.widget.AutocompleteActivity;
 import com.google.android.libraries.places.widget.model.AutocompleteActivityMode;
@@ -40,7 +38,6 @@ import com.google.android.material.navigation.NavigationView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentSnapshot;
-import com.google.firebase.firestore.QuerySnapshot;
 
 import androidx.drawerlayout.widget.DrawerLayout;
 
@@ -50,25 +47,30 @@ import androidx.fragment.app.FragmentManager;
 import androidx.lifecycle.ViewModelProviders;
 
 import android.view.View;
+import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.SearchView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
 
-public class MainActivity extends BaseActivity
-        implements NavigationView.OnNavigationItemSelectedListener {
+public class MainActivity extends BaseActivity implements NavigationView.OnNavigationItemSelectedListener {
 
-    private MainViewModel mMainViewModel;
     private static final String PLACEREFERENCE = "placeReference";
     private int AUTOCOMPLETE_REQUEST_CODE = 1;
+
+    private MainViewModel mMainViewModel;
+
     private TextView mtv_Menu_Mail;
     private TextView mtv_Menu_Name;
     private ImageView imgMenuProfile;
+    private BottomNavigationView bottomNavigationView;
+
     private Boolean search = true;
-    BottomNavigationView bottomNavigationView;
 
     private BottomNavigationView.OnNavigationItemSelectedListener mOnNavigationItemSelectedListener
             = new BottomNavigationView.OnNavigationItemSelectedListener() {
@@ -92,7 +94,7 @@ public class MainActivity extends BaseActivity
                 case R.id.navigation_workmates:
                     search = false;
                     if (mMainViewModel.getFragment(2) == null){
-                        mMainViewModel.setFragment(2,WorkmateFragment.newInstance());
+                        mMainViewModel.setFragment(2,WorkmateFragment.newInstance(mMainViewModel));
                         showFragment(mMainViewModel.getFragment(2));
                     }else showFragment(mMainViewModel.getFragment(2));
                     return true;
@@ -102,9 +104,7 @@ public class MainActivity extends BaseActivity
     };
 
     @Override
-    public int getLayoutContentViewID() {
-        return R.layout.activity_main;
-    }
+    public int getLayoutContentViewID() { return R.layout.activity_main; }
 
     @Override
     protected void setupUi(){
@@ -144,17 +144,6 @@ public class MainActivity extends BaseActivity
             });
             setupMenuInfo(currentUser);
         }
-
-        if (mFireBaseApi.getWorkmatesList() == null){
-            UserHelper.getUserList().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
-                @Override
-                public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
-                    mFireBaseApi.setWorkmatesList(queryDocumentSnapshots.toObjects(Workmate.class));
-                    mFireBaseApi.setWorkmateListNoMe(currentUser.getUid());
-                }
-            });
-
-        }
         showFragment(MapFragment.newInstance(mMainViewModel));
     }
 
@@ -165,7 +154,7 @@ public class MainActivity extends BaseActivity
 
     private void setupMenuInfo(FirebaseUser user){
         mtv_Menu_Mail.setText(user.getEmail());
-        mtv_Menu_Name.setText(user.getDisplayName()); //TODO Return null change on firebase email verif
+        mtv_Menu_Name.setText(user.getDisplayName());
         Glide.with(imgMenuProfile.getContext())
                 .load(user.getPhotoUrl())
                 .apply(RequestOptions.circleCropTransform())
@@ -175,46 +164,63 @@ public class MainActivity extends BaseActivity
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         MenuInflater inflater = getMenuInflater();
-        if (search){
-            inflater.inflate(R.menu.options_menu, menu);
-        }
+        inflater.inflate(R.menu.options_menu, menu);
+        MenuItem item = menu.findItem(R.id.app_bar_search);
         return true;
     }
 
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
-        if (item.getItemId() == R.id.app_bar_search){ setSearch(); }
+
+        if (item.getItemId() == R.id.app_bar_search && search){
+            setSearch(); }
+        else if (item.getItemId() == R.id.app_bar_search_workmate && !search){
+            SearchView searchViewWork = findViewById(R.id.app_bar_search_workmate);
+            searchViewWork.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+                @Override
+                public boolean onQueryTextSubmit(String s) {
+                    return false;
+                }
+
+                @Override
+                public boolean onQueryTextChange(String s) {
+                    mMainViewModel.setCurrentName(s);//TODO Check
+                    return false;
+                }
+            });
+
+        }
         return true;
     }
 
     private void setSearch() {
-        if (search){
-            // Set the fields to specify which types of place data to
-            // return after the user has made a selection.
-            List<Place.Field> fields = Arrays.asList(Place.Field.ID, Place.Field.NAME, Place.Field.TYPES);
+        // Set the fields to specify which types of place data to
+        // return after the user has made a selection.
+        List<Place.Field> fields = Arrays.asList(Place.Field.ID, Place.Field.NAME, Place.Field.TYPES);
 
-            // Start the autocomplete intent.
-            Intent intent = new Autocomplete.IntentBuilder(
-                    AutocompleteActivityMode.OVERLAY, fields)
-                    .setTypeFilter(TypeFilter.ESTABLISHMENT)
-                    .setTypeFilter(TypeFilter.REGIONS)
-                    .setCountry("FR")
-                    .build(this);
-            startActivityForResult(intent, AUTOCOMPLETE_REQUEST_CODE);
-        }else{
-        }
+        // Start the autocomplete intent.
+        Intent intent = new Autocomplete.IntentBuilder(
+                AutocompleteActivityMode.OVERLAY, fields)
+                .setTypeFilter(TypeFilter.ESTABLISHMENT)
+                .setCountry("FR")
+                .build(this);
+        startActivityForResult(intent, AUTOCOMPLETE_REQUEST_CODE);
     }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == AUTOCOMPLETE_REQUEST_CODE){
-            if (requestCode == RESULT_OK){
+            if (resultCode == RESULT_OK){
                 Place place = Autocomplete.getPlaceFromIntent(data);
-            }else if (requestCode == AutocompleteActivity.RESULT_ERROR){
+                Intent intent = new Intent(this, DetailPlaceActivity.class);
+                intent.putExtra("placeReference",place.getId());
+                startActivity(intent);
+            }else if (resultCode == AutocompleteActivity.RESULT_ERROR){
                 Status status = Autocomplete.getStatusFromIntent(data);
                 Log.i("TAG", status.getStatusMessage());
             } else if (resultCode == RESULT_CANCELED) {
+                Toast.makeText(this, "cancel", Toast.LENGTH_SHORT).show();
                 // The user canceled the operation.
             }
         }
