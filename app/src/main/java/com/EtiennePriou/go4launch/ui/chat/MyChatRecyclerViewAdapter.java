@@ -23,6 +23,7 @@ import com.firebase.ui.firestore.FirestoreRecyclerOptions;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Locale;
 
 public class MyChatRecyclerViewAdapter extends FirestoreRecyclerAdapter<Message, MyChatRecyclerViewAdapter.MessageViewHolder> {
 
@@ -41,7 +42,6 @@ public class MyChatRecyclerViewAdapter extends FirestoreRecyclerAdapter<Message,
      * Create a new RecyclerView adapter that listens to a Firestore Query.  See {@link
      * FirestoreRecyclerOptions} for configuration options.
      *
-     * @param options
      */
     public MyChatRecyclerViewAdapter(@NonNull FirestoreRecyclerOptions<Message> options, RequestManager glide,
     Listener callback, String idCurrentUser) {
@@ -148,7 +148,7 @@ public class MyChatRecyclerViewAdapter extends FirestoreRecyclerAdapter<Message,
         // ---
 
         private String convertDateToHour(Date date){
-            DateFormat dfTime = new SimpleDateFormat("HH:mm");
+            DateFormat dfTime = new SimpleDateFormat("HH:mm", Locale.FRANCE);
             return dfTime.format(date);
         }
     }

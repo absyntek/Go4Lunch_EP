@@ -13,23 +13,22 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.EtiennePriou.go4launch.R;
 import com.EtiennePriou.go4launch.models.Workmate;
-import com.EtiennePriou.go4launch.services.firebase.helpers.PlaceHelper;
 import com.EtiennePriou.go4launch.ui.chat.ChatActivity;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.RequestOptions;
 import com.google.firebase.auth.FirebaseAuth;
 
-import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 
 public class MyWorkmateRecyclerViewAdapter extends RecyclerView.Adapter<MyWorkmateRecyclerViewAdapter.ViewHolder>{
 
     private List<Workmate> mWorkmates;
-    private int wichActi;
+    private int wichActivity;
 
     public MyWorkmateRecyclerViewAdapter(List<Workmate> workmates, int wichActi) {
         this.mWorkmates = workmates;
-        this.wichActi = wichActi;
+        this.wichActivity = wichActi;
     }
 
     @NonNull
@@ -45,15 +44,15 @@ public class MyWorkmateRecyclerViewAdapter extends RecyclerView.Adapter<MyWorkma
 
         final Workmate workmate = mWorkmates.get(position);
 
-        if (wichActi == 0){
-            String isJoin = workmate.getUsername()+" is joining!";
+        if (wichActivity == 0){
+            String isJoin = workmate.getUsername()+ holder.mContext.getString(R.string.isJoining);
             holder.workmateName.setText(isJoin);
         }else{
             String whereIsGoing;
             if (workmate.getPlaceToGo() != null){
-                whereIsGoing = workmate.getUsername() + " is going to " + workmate.getPlaceToGo().get("placeName").toString();
+                whereIsGoing = workmate.getUsername() + holder.mContext.getString(R.string.isGoingTo) + workmate.getPlaceToGo().get("placeName").toString();
             }else {
-                whereIsGoing = workmate.getUsername() + " didn't choose yet";
+                whereIsGoing = workmate.getUsername() + holder.mContext.getString(R.string.didntChoose);
             }
             holder.workmateName.setText(whereIsGoing);
 
@@ -70,13 +69,14 @@ public class MyWorkmateRecyclerViewAdapter extends RecyclerView.Adapter<MyWorkma
             public void onClick(View view) {
                 String chatToken;
 
-                if (workmate.getUid().compareTo(FirebaseAuth.getInstance().getUid()) > 0){
+                if (workmate.getUid().compareTo(Objects.requireNonNull(FirebaseAuth.getInstance().getUid())) > 0){
                     chatToken = workmate.getUid()+ FirebaseAuth.getInstance().getUid();
                 }else{
                     chatToken = FirebaseAuth.getInstance().getUid() + workmate.getUid();
                 }
                 Intent chat = new Intent(view.getContext(), ChatActivity.class);
-                chat.putExtra("token",chatToken);
+                chat.putExtra(view.getResources().getString(R.string.TOKEN), chatToken);
+                chat.putExtra(view.getResources().getString(R.string.RECEIVER), workmate.getUsername());
                 view.getContext().startActivity(chat);
             }
         });
@@ -93,9 +93,12 @@ public class MyWorkmateRecyclerViewAdapter extends RecyclerView.Adapter<MyWorkma
         ImageView workmateImage;
         ImageView btnChat;
 
+        Context mContext;
+
         ViewHolder(@NonNull View itemView) {
             super(itemView);
 
+            mContext = itemView.getContext();
             workmateName =itemView.findViewById(R.id.tvWorkemate);
             workmateImage = itemView.findViewById(R.id.imgWorkmate);
             btnChat = itemView.findViewById(R.id.imgChat);

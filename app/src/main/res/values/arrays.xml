@@ -6,7 +6,11 @@
     </string-array>
 
     <string-array name="reply_values">
-        <item>reply</item>
-        <item>reply_all</item>
+    <item>reply</item>
+    <item>reply_all</item>
+</string-array>
+    <string-array name="language">
+        <item>Francais</item>
+        <item>English</item>
     </string-array>
 </resources>

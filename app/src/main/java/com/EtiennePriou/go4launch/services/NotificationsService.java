@@ -5,6 +5,7 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
+import android.content.res.Resources;
 import android.media.RingtoneManager;
 import android.os.Build;
 
@@ -66,15 +67,15 @@ public class NotificationsService extends FirebaseMessagingService {
     private void makeMessage() {
         StringBuilder nameMessage = new StringBuilder();
         if (listName.size() == 1){
-            nameMessage.append(", but you are the only one to eat there ;(");
+            nameMessage.append(Resources.getSystem().getString(R.string.butYouAreTheOnlyOne));
         }else{
-            nameMessage.append("\nwith : \n");
+            nameMessage.append(getString(R.string.with));
             for (DocumentSnapshot data : listName){
                 if (!data.get("uid").toString().equals(uid))
                 nameMessage.append("- " + data.get("name")+"\n");
             }
         }
-        String messageBody = "Dont forget, you're going to :\n" + placeName + nameMessage + "\n" + adresse;
+        String messageBody = getString(R.string.dontForget) + placeName + nameMessage + "\n" + adresse;
 
         sendVisualNotification(messageBody);
     }

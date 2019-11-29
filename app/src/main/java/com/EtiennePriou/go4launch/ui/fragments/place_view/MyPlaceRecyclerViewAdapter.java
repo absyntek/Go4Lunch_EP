@@ -1,12 +1,12 @@
 package com.EtiennePriou.go4launch.ui.fragments.place_view;
 
 import androidx.annotation.NonNull;
+import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -18,28 +18,28 @@ import com.EtiennePriou.go4launch.R;
 import com.EtiennePriou.go4launch.di.DI;
 import com.EtiennePriou.go4launch.services.firebase.helpers.PlaceHelper;
 import com.EtiennePriou.go4launch.services.places.PlacesApi;
-import com.EtiennePriou.go4launch.utils.DetailHelper;
+import com.EtiennePriou.go4launch.services.places.helpers.DetailHelper;
 import com.EtiennePriou.go4launch.ui.MainViewModel;
 import com.EtiennePriou.go4launch.ui.details.DetailPlaceActivity;
-import com.google.android.gms.common.api.ApiException;
-import com.google.android.gms.tasks.OnFailureListener;
+import com.EtiennePriou.go4launch.utils.CheckTime;
+import com.EtiennePriou.go4launch.utils.NoteCalcul;
+import com.bumptech.glide.Glide;
 import com.google.android.gms.tasks.OnSuccessListener;
-import com.google.android.libraries.places.api.model.PhotoMetadata;
 import com.google.android.libraries.places.api.model.Place;
-import com.google.android.libraries.places.api.net.FetchPhotoRequest;
 import com.google.android.libraries.places.api.net.FetchPhotoResponse;
-import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.android.libraries.places.api.net.FetchPlaceResponse;
 import com.google.firebase.firestore.QuerySnapshot;
 
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 
 public class MyPlaceRecyclerViewAdapter extends RecyclerView.Adapter<MyPlaceRecyclerViewAdapter.ViewHolder> {
 
     private final List<Place> mPlaceModelList;
-    private Context mContext;
     private MainViewModel mMainViewModel;
-    private static final String PLACEREFERENCE = "placeReference";
     private PlacesApi mPlacesApi;
+    private Context mContext;
 
     MyPlaceRecyclerViewAdapter(List<Place> items, MainViewModel mainViewModel) {
         this.mPlaceModelList = items;
@@ -52,6 +52,7 @@ public class MyPlaceRecyclerViewAdapter extends RecyclerView.Adapter<MyPlaceRecy
         View view = LayoutInflater.from(parent.getContext())
                 .inflate(R.layout.fragment_place, parent, false);
         mPlacesApi = DI.getServiceApiPlaces();
+        mContext = parent.getContext();
         return new ViewHolder(view);
     }
 
@@ -62,47 +63,37 @@ public class MyPlaceRecyclerViewAdapter extends RecyclerView.Adapter<MyPlaceRecy
         holder.mtvAdresse.setText(placeModel.getAddress());
 
         // -- load image --
-        PhotoMetadata photoMetadata = placeModel.getPhotoMetadatas().get(0);
-        String attributions = photoMetadata.getAttributions();
-        FetchPhotoRequest photoRequest = FetchPhotoRequest.builder(photoMetadata).build();
+        if (placeModel.getPhotoMetadatas() != null){
+            DetailHelper.getPhoto(placeModel,mPlacesApi.getPlacesClient()).addOnSuccessListener(new OnSuccessListener<FetchPhotoResponse>() {
+                @Override
+                public void onSuccess(FetchPhotoResponse fetchPhotoResponse) {
+                    Glide.with(holder.imgPlaceListe).load(fetchPhotoResponse.getBitmap()).into(holder.imgPlaceListe);
+                }
+            });
+        }
 
-        DetailHelper.getPhoto(placeModel,mPlacesApi.getPlacesClient()).addOnSuccessListener(new OnSuccessListener<FetchPhotoResponse>() {
+        // -- Distance between points --
+        holder.mtvDistance.setText(mMainViewModel.getDistanceBetween(Objects.requireNonNull(placeModel.getLatLng())));
+
+        // -- check opening time --
+        DetailHelper.getHours(placeModel.getId(),mPlacesApi.getPlacesClient()).addOnSuccessListener(new OnSuccessListener<FetchPlaceResponse>() {
             @Override
-            public void onSuccess(FetchPhotoResponse fetchPhotoResponse) {
-                Bitmap bitmap = fetchPhotoResponse.getBitmap();
-                holder.imgPlaceListe.setImageBitmap(bitmap);
-            }
-        }).addOnFailureListener(new OnFailureListener() {
-            @Override
-            public void onFailure(@NonNull Exception e) {
-                holder.imgPlaceListe.setImageResource(R.drawable.notext_logo200x200);
-                if (e instanceof ApiException){
-                    ApiException apiException = (ApiException) e;
-                    int statusCode = apiException.getStatusCode();
-                    // Handle error with given status code.
-                    Log.e("test", "Place not found: " + e.getMessage());
+            public void onSuccess(FetchPlaceResponse fetchPlaceResponse) {
+                if (fetchPlaceResponse.getPlace().getOpeningHours() !=null){
+                    Map toShow = CheckTime.getStringTime(fetchPlaceResponse.getPlace().getOpeningHours(), mContext);
+                    String sToShow = String.valueOf(toShow.get("string"));
+                    Boolean open = (Boolean) toShow.get("open");
+                    holder.mtvIsOpen.setText(sToShow);
+                    if (open){
+                        holder.mtvIsOpen.setTextColor(ContextCompat.getColor(mContext ,R.color.green));
+                    }else {
+                        holder.mtvIsOpen.setTextColor(ContextCompat.getColor(mContext,R.color.red));
+                    }
+                }else {
+                    holder.mtvIsOpen.setText(mContext.getString(R.string.dont_know_open_time));
                 }
             }
         });
-
-        // -- Distance between points --
-        holder.mtvDistance.setText(mMainViewModel.getDistanceBetween(placeModel.getLatLng()));
-
-//        // -- check opening time --
-//        if (placeModel.isOpen() == null){
-//            holder.mtvIsOpen.setTextColor(ContextCompat.getColor(mContext,R.color.quantum_black_text));
-//            holder.mtvIsOpen.setText(R.string.UnknownTime);
-//        }else{
-//            boolean isOpen = Boolean.parseBoolean(placeModel.isOpen());
-//            if (isOpen){
-//                holder.mtvIsOpen.setTextColor(ContextCompat.getColor(mContext,R.color.green));
-//                holder.mtvIsOpen.setText(R.string.open);
-//
-//            }else {
-//                holder.mtvIsOpen.setTextColor(ContextCompat.getColor(mContext,R.color.red));
-//                holder.mtvIsOpen.setText(R.string.close);
-//            }
-//        }
 
         // -- Check number of workmates who coming to this place --
         PlaceHelper
@@ -110,29 +101,14 @@ public class MyPlaceRecyclerViewAdapter extends RecyclerView.Adapter<MyPlaceRecy
                 .addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
             @Override
             public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
-                int nmbWork = queryDocumentSnapshots.size();
-                holder.mtvNbrWorkmates.setText(String.valueOf(nmbWork));
+                holder.mtvNbrWorkmates.setText(String.valueOf(queryDocumentSnapshots.size()));
             }
         });
 
         PlaceHelper.getNotes(placeModel.getId()).addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
             @Override
             public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
-                int placeNote = 0;
-                if (queryDocumentSnapshots != null || queryDocumentSnapshots.size() > 0){
-                    int divisor = queryDocumentSnapshots.size();
-                    int noteToDivise = 0;
-                    for (DocumentSnapshot note : queryDocumentSnapshots){
-                        int noteTmp = note.get("note",Integer.class);
-                        noteToDivise += noteTmp;
-                    }
-                    if (noteToDivise < 1){
-                        placeNote = 0;
-                    }else{
-                        placeNote = Math.round(noteToDivise/divisor);
-                    }
-                    holder.mRatingBar.setRating(placeNote);
-                }
+                holder.mRatingBar.setRating(NoteCalcul.calateNote(queryDocumentSnapshots));
             }
         });
 
@@ -141,7 +117,7 @@ public class MyPlaceRecyclerViewAdapter extends RecyclerView.Adapter<MyPlaceRecy
             @Override
             public void onClick(View view) {
                 Intent intent = new Intent(view.getContext(), DetailPlaceActivity.class);
-                intent.putExtra(PLACEREFERENCE, placeModel.getId());
+                intent.putExtra(view.getResources().getString(R.string.PLACEREFERENCE), placeModel.getId());
                 view.getContext().startActivity(intent);
             }
         });
@@ -169,7 +145,6 @@ public class MyPlaceRecyclerViewAdapter extends RecyclerView.Adapter<MyPlaceRecy
             mtvDistance = view.findViewById(R.id.tvDistance);
             imgPlaceListe = view.findViewById(R.id.imgPlace);
             mRatingBar = view.findViewById(R.id.ratingBarList);
-            mContext = view.getContext();
         }
 
         @NonNull

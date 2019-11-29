@@ -54,13 +54,14 @@ public class WorkmateFragment extends BaseFragment {
         final Observer<String> searchObserver = new Observer<String>() {
             @Override
             public void onChanged(@Nullable final String search) {
+                mWorkmates.clear();
                 if (search != null || !search.isEmpty()){
                     for (Workmate workmate : mFireBaseApi.getWorkmatesListNoMe()){
                         if (workmate.getUsername().contains(search)){
                             mWorkmates.add(workmate);
                         }
                     }
-                    if (!mWorkmates.isEmpty()) setAdapter(mWorkmates);
+                    setAdapter(mWorkmates);
                 }
             }
         };

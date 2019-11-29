@@ -1,13 +1,18 @@
 package com.EtiennePriou.go4launch;
 
+import android.annotation.SuppressLint;
+import android.app.AlertDialog;
+import android.content.Context;
 import android.content.Intent;
+import android.os.AsyncTask;
 import android.os.Bundle;
-import android.os.Handler;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -16,8 +21,8 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.EtiennePriou.go4launch.services.firebase.helpers.UserHelper;
 import com.EtiennePriou.go4launch.ui.MainActivity;
+import com.EtiennePriou.go4launch.utils.InternetTest;
 import com.firebase.ui.auth.AuthUI;
-import com.firebase.ui.auth.IdpResponse;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.auth.FirebaseAuth;
@@ -31,34 +36,35 @@ import java.util.Objects;
 public class SplashActivity extends AppCompatActivity {
 
     private static final int RC_SIGN_IN = 123;
+    private FirebaseAuth mAuth;
     private FirebaseUser user;
+    private AlertDialog alertDialog;
+    private ProgressBar mProgressBar;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_splash);
+        mProgressBar = findViewById(R.id.progressBar3);
+        mProgressBar.setVisibility(View.VISIBLE);
 
         ImageView logo = findViewById(R.id.imgLogoSplash);
 
-        //TODO Login if connect
-
-        int fadeTimeOut = 2000;
-        new Handler().postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                createSignInIntent();
-            }
-        }, fadeTimeOut);
+        startAsyncTask();
 
         Animation fadeAnim = AnimationUtils.loadAnimation(this,R.anim.mysplashanimation);
         logo.startAnimation(fadeAnim);
-        Button signIn = findViewById(R.id.btnSignInSplash);
-        signIn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                createSignInIntent();
-            }
-        });
+//        Button signIn = findViewById(R.id.btnSignInSplash);
+//        signIn.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View view) {
+//                createSignInIntent();
+//            }
+//        });
+    }
+
+    private void startAsyncTask(){
+        new CheckIfInternet().execute(this);
     }
 
     public void createSignInIntent() {
@@ -84,17 +90,11 @@ public class SplashActivity extends AppCompatActivity {
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
-        if (requestCode == RC_SIGN_IN) {
-            IdpResponse response = IdpResponse.fromResultIntent(data);
-
-            if (resultCode == RESULT_OK) {
-                // Successfully signed in
-                user = Objects.requireNonNull(FirebaseAuth.getInstance().getCurrentUser());
-                createUserInFirestore();
-                startMainActivity();
-            } else {
-                //TODO check if connection or somethings
-            }
+        if (requestCode == RC_SIGN_IN && resultCode == RESULT_OK) {
+            // Successfully signed in
+            user = Objects.requireNonNull(mAuth.getCurrentUser());
+            createUserInFirestore();
+            startMainActivity();
         }
     }
 
@@ -104,7 +104,7 @@ public class SplashActivity extends AppCompatActivity {
         UserHelper.getUser(user.getUid()).addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
             @Override
             public void onSuccess(DocumentSnapshot documentSnapshot) {
-                if (documentSnapshot.get("uid") == null || !documentSnapshot.get("uid").equals(user.getUid())){
+                if (documentSnapshot.get("uid") == null || !Objects.equals(documentSnapshot.get("uid"), user.getUid())){
                     String urlPicture = (user.getPhotoUrl() != null) ? user.getPhotoUrl().toString() : null;
                     String username = user.getDisplayName();
                     String uid = user.getUid();
@@ -118,19 +118,76 @@ public class SplashActivity extends AppCompatActivity {
         return new OnFailureListener() {
             @Override
             public void onFailure(@NonNull Exception e) {
-                Toast.makeText(getApplicationContext(), getString(R.string.error_unknown_error), Toast.LENGTH_LONG).show();
+                Toast.makeText(getApplicationContext(), e.getMessage() , Toast.LENGTH_LONG).show();
             }
         };
+    }
+
+    private void showAlertDial (){
+        android.app.AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        LayoutInflater inflater = getLayoutInflater();
+        builder.setView(inflater.inflate(R.layout.dialog_no_internet, null));
+        alertDialog = builder.create();
+        alertDialog.show();
+
+        Button valid = alertDialog.findViewById(R.id.ratingBoxValid);
+        valid.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                alertDialog.dismiss();
+                startAsyncTask();
+            }
+        });
+
+        Button cancel = alertDialog.findViewById(R.id.ratingBoxCancel);
+        cancel.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                alertDialog.dismiss();
+                finish();
+                System.exit(0);
+            }
+        });
     }
 
     private void startMainActivity(){
         Intent intent = new Intent(getApplicationContext(), MainActivity.class);
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         startActivity(intent);
+        this.finish();
     }
 
-    @Override
-    protected void onResume() {
-        super.onResume();
+    @SuppressLint("StaticFieldLeak")
+    class CheckIfInternet extends AsyncTask<Context,Void,Integer>{
+
+        @Override
+        protected Integer doInBackground(Context... contexts) {
+
+            if (InternetTest.isNetworkConnected(contexts[0])){
+                mAuth = FirebaseAuth.getInstance();
+                if (mAuth.getCurrentUser() != null) {
+                    return 1;
+                }else {
+                    return 2;
+                }
+            }else {
+                return 3;
+            }
+        }
+
+        @Override
+        protected void onPostExecute(Integer integer) {
+            switch (integer){
+                case 1:
+                    startMainActivity();
+                    break;
+                case 2:
+                    createSignInIntent();
+                    break;
+                case 3:
+                    showAlertDial();
+                    break;
+            }
+        }
     }
 }

@@ -15,7 +15,6 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -59,7 +58,6 @@ import static android.Manifest.permission.ACCESS_FINE_LOCATION;
 public class MapFragment extends Fragment implements OnMapReadyCallback, LocationListener, GoogleMap.OnInfoWindowClickListener {
 
     private static final int REQUEST_ID_ACCESS_COURSE_FINE_LOCATION = 100;
-    private static final String PLACEREFERENCE = "placeReference";
     private static MainViewModel mMainViewModel;
     private GoogleMap mMap;
     private View mView;
@@ -68,7 +66,6 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, Locatio
     private FusedLocationProviderClient fusedLocationClient;
     private PlacesApi mPlacesApi;
     private PlacesClient placesClient;
-    private final String TAG = "TEST";
 
 
     public MapFragment() { }
@@ -150,7 +147,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, Locatio
                     && grantResults[0] == PackageManager.PERMISSION_GRANTED
                     && grantResults[1] == PackageManager.PERMISSION_GRANTED) {
 
-                Toast.makeText(getContext(), "Permission granted!", Toast.LENGTH_LONG).show();
+                Toast.makeText(getContext(), getString(R.string.PermissionGarented), Toast.LENGTH_LONG).show();
                 fusedLocationClient.getLastLocation().addOnSuccessListener(new OnSuccessListener<Location>() {
                     @Override
                     public void onSuccess(Location location) {
@@ -160,7 +157,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, Locatio
             }
             // Cancelled or denied.
             else {
-                Toast.makeText(getContext(), "Permission denied!", Toast.LENGTH_LONG).show();
+                Toast.makeText(getContext(), getString(R.string.permission_denied), Toast.LENGTH_LONG).show();
             }
         }
     }
@@ -171,7 +168,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, Locatio
             mPlacesApi.setLocation(location);
             mMainViewModel.setLocation(location);
             getPlacesAround();
-        }else if (location.distanceTo(mPlacesApi.getLocation()) > 100){                              // si on se déplace de 500m
+        }else if (location.distanceTo(mPlacesApi.getLocation()) > 100){                              // si on se déplace de 100m
             mPlacesApi.setLocation(location);
             mMainViewModel.setLocation(location);
             getPlacesAround();
@@ -205,7 +202,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, Locatio
                         if (response != null){
                             List<Place> placesList = takeOnlyRestaurant(response.getPlaceLikelihoods());
                             if (placesList.isEmpty()){
-                                Toast.makeText(getContext(), "No Places Found", Toast.LENGTH_LONG).show();
+                                Toast.makeText(getContext(), mContext.getString(R.string.noplacefound), Toast.LENGTH_LONG).show();
                                 myProgress.dismiss();
                             }else {
                                 mPlacesApi.setPlaces(placesList);
@@ -215,8 +212,6 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, Locatio
                     } else {
                         Exception exception = task.getException();
                         if (exception instanceof ApiException) {
-                            ApiException apiException = (ApiException) exception;
-                            Log.e(TAG, "Place not found: " + apiException.getStatusCode());
                             myProgress.dismiss();
                         }
                     }
@@ -244,9 +239,9 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, Locatio
 
             MarkerOptions markerOptions = new MarkerOptions();
 
-            if (placeModel.getTypes().contains(Place.Type.RESTAURANT)){
+            if (Objects.requireNonNull(placeModel.getTypes()).contains(Place.Type.RESTAURANT)){
 
-                markerOptions.position(placeModel.getLatLng());
+                markerOptions.position(Objects.requireNonNull(placeModel.getLatLng()));
                 markerOptions.title(placeModel.getName());
                 markerOptions.snippet(placeModel.getAddress());
                 markerOptions.icon(BitmapDescriptorFactory.defaultMarker());
@@ -265,8 +260,8 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, Locatio
     private void showProgressBar() {
         // Create Progress Bar.
         myProgress = new ProgressDialog(mContext);
-        myProgress.setTitle("Fetching nearby restaurants ...");
-        myProgress.setMessage("Please wait...");
+        myProgress.setTitle(getResources().getString(R.string.fetching_restaurant));
+        myProgress.setMessage(getResources().getString(R.string.pleaseWait));
         myProgress.setCancelable(false);
         myProgress.setCanceledOnTouchOutside(false);
         // Display Progress Bar.
@@ -282,7 +277,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, Locatio
     @Override
     public void onInfoWindowClick(Marker marker) {
         Intent detailIntent = new Intent(this.getContext(), DetailPlaceActivity.class);
-        detailIntent.putExtra(PLACEREFERENCE, Objects.requireNonNull(marker.getTag()).toString());
+        detailIntent.putExtra(getString(R.string.PLACEREFERENCE), Objects.requireNonNull(marker.getTag()).toString());
         Objects.requireNonNull(this.getContext()).startActivity(detailIntent);
     }
 }

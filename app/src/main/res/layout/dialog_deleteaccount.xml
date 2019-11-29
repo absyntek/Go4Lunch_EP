@@ -1,31 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical"
-    android:layout_width="wrap_content"
-    android:layout_height="wrap_content">
+    android:orientation="vertical" android:layout_width="match_parent"
+    android:layout_height="match_parent">
 
-    <TextView
-        android:id="@+id/textView"
-        android:layout_width="wrap_content"
+    <com.google.android.material.textfield.TextInputLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="4dp"
-        android:layout_marginStart="4dp"
-        android:layout_marginEnd="4dp"
-        android:layout_gravity="center"
-        android:textSize="20sp"
-        android:text="@string/how_much_do_you_love_this_place" />
+        android:layout_margin="8dp"
+        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+        android:hint="@string/">
 
-    <RatingBar
-        android:id="@+id/ratingBoxNote"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:layout_gravity="center"
-        android:numStars="5"
-        android:stepSize="1"
-        android:secondaryProgressTint="@color/colorPrimarySoft"
-        android:progressTint="@color/yellow"
-        android:progressBackgroundTint="@color/colorPrimarySoft"/>
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/tvUserNameToUpDate"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"/>
+
+    </com.google.android.material.textfield.TextInputLayout>
 
     <LinearLayout
         android:layout_width="wrap_content"
@@ -35,7 +25,7 @@
         android:layout_marginBottom="4dp"
         android:orientation="horizontal">
         <Button
-            android:id="@+id/ratingBoxCancel"
+            android:id="@+id/deleteBoxCancel"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="4dp"
@@ -44,7 +34,7 @@
             android:background="@drawable/circular_button"
             android:text="@string/fui_cancel"/>
         <Button
-            android:id="@+id/ratingBoxValid"
+            android:id="@+id/deleteBoxValid"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="4dp"

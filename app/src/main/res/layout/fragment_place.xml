@@ -16,7 +16,6 @@
         android:ellipsize="end"
         android:fontFamily="@font/raleway_medium"
         android:maxLines="1"
-        android:text="La Maison Restaurant"
         android:textAppearance="?attr/textAppearanceListItem"
         android:typeface="normal"
         app:layout_constraintEnd_toStartOf="@+id/tvDistance"
@@ -32,7 +31,6 @@
         android:ellipsize="end"
         android:fontFamily="@font/raleway_semibold"
         android:maxLines="1"
-        android:text="Traditionelle - 3 route de la couarde"
         android:textSize="12sp"
         app:layout_constraintEnd_toEndOf="@+id/tvNamePlace"
         app:layout_constraintStart_toStartOf="parent"
@@ -45,7 +43,6 @@
         android:layout_marginStart="16dp"
         android:layout_marginTop="8dp"
         android:fontFamily="@font/raleway_semibold"
-        android:text="Open until 6pm"
         android:textSize="12sp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/tvAdressePlace" />
@@ -61,7 +58,7 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        tools:srcCompat="@tools:sample/avatars" />
+        tools:srcCompat="@drawable/food_flou" />
 
     <TextView
         android:id="@+id/tvDistance"
@@ -69,7 +66,6 @@
         android:layout_height="wrap_content"
         android:layout_marginEnd="16dp"
         android:fontFamily="@font/raleway_semibold"
-        android:text="120m"
         android:textColor="#5C000000"
         android:textSize="12sp"
         app:layout_constraintEnd_toStartOf="@+id/imgPlace"
@@ -81,7 +77,7 @@
         android:layout_height="wrap_content"
         android:layout_marginEnd="8dp"
         android:fontFamily="@font/raleway_semibold"
-        android:text="(-)"
+        android:text="@string/known"
         android:textSize="12sp"
         app:layout_constraintEnd_toStartOf="@+id/imgPlace"
         app:layout_constraintTop_toTopOf="@+id/tvAdressePlace" />

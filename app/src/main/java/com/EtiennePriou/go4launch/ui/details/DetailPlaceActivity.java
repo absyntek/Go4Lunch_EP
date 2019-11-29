@@ -7,8 +7,9 @@ import com.EtiennePriou.go4launch.models.Workmate;
 import com.EtiennePriou.go4launch.services.firebase.helpers.PlaceHelper;
 import com.EtiennePriou.go4launch.services.firebase.helpers.UserHelper;
 import com.EtiennePriou.go4launch.services.places.PlacesApi;
-import com.EtiennePriou.go4launch.utils.DetailHelper;
+import com.EtiennePriou.go4launch.services.places.helpers.DetailHelper;
 import com.EtiennePriou.go4launch.ui.fragments.workmates_list.MyWorkmateRecyclerViewAdapter;
+import com.EtiennePriou.go4launch.utils.NoteCalcul;
 import com.bumptech.glide.Glide;
 import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.tasks.OnFailureListener;
@@ -26,10 +27,10 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Build;
 import android.util.Log;
@@ -44,6 +45,7 @@ import android.widget.Toast;
 import com.EtiennePriou.go4launch.R;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
 
 import java.util.ArrayList;
@@ -52,9 +54,18 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-public class DetailPlaceActivity extends BaseActivity {
+import io.reactivex.Observable;
+import io.reactivex.ObservableEmitter;
+import io.reactivex.ObservableOnSubscribe;
+import io.reactivex.Observer;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.disposables.Disposable;
+import io.reactivex.functions.Consumer;
+import io.reactivex.internal.observers.BlockingBaseObserver;
+import io.reactivex.observers.DisposableObserver;
+import io.reactivex.schedulers.Schedulers;
 
-    private static final String PLACEREFERENCE = "placeReference";
+public class DetailPlaceActivity extends BaseActivity {
 
     private ImageView mimgNoOne, mimgDetailsTop;
     private RatingBar mratingBarPlace, ratingBar;
@@ -68,7 +79,6 @@ public class DetailPlaceActivity extends BaseActivity {
     private Place mPlaceDetails;
     private String placeRef;
     private Workmate currentUser;
-    private int placeNote;
     private int impToFinish = 0;
 
     private DetailsViewModel mDetailsViewModel;
@@ -99,7 +109,7 @@ public class DetailPlaceActivity extends BaseActivity {
         mPlacesApi = DI.getServiceApiPlaces();
         configureViewModel();
 
-        placeRef = getIntent().getStringExtra(PLACEREFERENCE);
+        placeRef = getIntent().getStringExtra(getResources().getString(R.string.PLACEREFERENCE));
         getPlaceDetails();
     }
 
@@ -114,7 +124,6 @@ public class DetailPlaceActivity extends BaseActivity {
             @Override
             public void onSuccess(FetchPlaceResponse response) {
                 Place place = response.getPlace();
-                Log.i("test", "Place found: " + place.getName());
                 mPlaceDetails = place;
 
                 checkNote();
@@ -138,10 +147,6 @@ public class DetailPlaceActivity extends BaseActivity {
             @Override
             public void onFailure(@NonNull Exception exception) {
                 if (exception instanceof ApiException) {
-                    ApiException apiException = (ApiException) exception;
-                    int statusCode = apiException.getStatusCode();
-                    // Handle error with given status code.
-                    Log.e("test", "Place not found: " + exception.getMessage());
                     mPlaceDetails = null;
                 }
             }
@@ -152,8 +157,7 @@ public class DetailPlaceActivity extends BaseActivity {
         DetailHelper.getPhoto(mPlaceDetails, mPlacesApi.getPlacesClient()).addOnSuccessListener(new OnSuccessListener<FetchPhotoResponse>() {
             @Override
             public void onSuccess(FetchPhotoResponse fetchPhotoResponse) {
-                Bitmap bitmap = fetchPhotoResponse.getBitmap();
-                Glide.with(mimgDetailsTop).load(bitmap).into(mimgDetailsTop);
+                Glide.with(mimgDetailsTop).load(fetchPhotoResponse.getBitmap()).into(mimgDetailsTop);
             }
         });
         mtvPlaceName.setText(mPlaceDetails.getName());
@@ -164,19 +168,8 @@ public class DetailPlaceActivity extends BaseActivity {
         PlaceHelper.getNotes(placeRef).addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
             @Override
             public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
-                if (queryDocumentSnapshots != null || queryDocumentSnapshots.size() > 0){
-                    int divisor = queryDocumentSnapshots.size();
-                    int noteToDivise = 0;
-                    for (DocumentSnapshot note : queryDocumentSnapshots){
-                        int noteTmp = note.get("note",Integer.class);
-                        noteToDivise += noteTmp;
-                    }
-                    if (noteToDivise < 1){
-                        placeNote = 0;
-                    }else{
-                        placeNote = Math.round(noteToDivise/divisor);
-                    }
-                    mratingBarPlace.setRating(placeNote);
+                if (queryDocumentSnapshots != null){
+                    mratingBarPlace.setRating( NoteCalcul.calateNote(queryDocumentSnapshots));
                 }
             }
         });
@@ -186,7 +179,7 @@ public class DetailPlaceActivity extends BaseActivity {
 
         /* --- Phone Button --- */
         if (mPlaceDetails.getPhoneNumber() == null || mPlaceDetails.getPhoneNumber().isEmpty()){
-            mbtnCall.setBackgroundColor(getResources().getColor(R.color.grey)); //TODO Change color icon
+            mbtnCall.setBackgroundColor(getResources().getColor(R.color.grey));
         }else{
             mbtnCall.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -231,7 +224,7 @@ public class DetailPlaceActivity extends BaseActivity {
             @Override
             public void onSuccess(DocumentSnapshot documentSnapshot) {
                 if (documentSnapshot.getDouble("note") != null){
-                    int myNote = documentSnapshot.get("note", Integer.class);
+                    int myNote = documentSnapshot.get("note",Integer.class);
                     createDialogBox(myNote);
                 }else createDialogBox(0);
             }
@@ -240,7 +233,6 @@ public class DetailPlaceActivity extends BaseActivity {
 
     private void createDialogBox(int myNote) {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             LayoutInflater inflater = this.getLayoutInflater();
             builder.setView(inflater.inflate(R.layout.dialog_rating, null));
             alertDialog = builder.create();
@@ -270,40 +262,104 @@ public class DetailPlaceActivity extends BaseActivity {
                     alertDialog.dismiss();
                 }
             });
-        }
     }
 
     private void sendNote(int note) {
         PlaceHelper.createFavorite(mFireBaseApi.getCurrentUser().getUid(),placeRef,note).addOnSuccessListener(new OnSuccessListener<Void>() {
             @Override
             public void onSuccess(Void aVoid) {
-                Toast.makeText(DetailPlaceActivity.this, "note send", Toast.LENGTH_SHORT).show();
+                Toast.makeText(DetailPlaceActivity.this, mContext.getString(R.string.the_note_sent), Toast.LENGTH_SHORT).show();
             }
         });
     }
+
+//    private void tmp (){
+//        PlaceHelper.getWhoComing(placeRef).addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
+//            @Override
+//            public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
+//                if (!queryDocumentSnapshots.isEmpty()){
+//                    Observable<DocumentSnapshot> docObservable = getdocObservable(queryDocumentSnapshots);
+//
+//                    DisposableObserver<DocumentSnapshot> docObserver = getdocObserver();
+//
+//                    docObservable.observeOn(Schedulers.io())
+//                            .subscribeOn(AndroidSchedulers.mainThread())
+//                            .distinct()
+//                            .subscribeWith(docObserver);
+//                }
+//            }
+//        });
+//    }
+//
+//    private DisposableObserver<DocumentSnapshot> getdocObserver() {
+//        return new DisposableObserver<DocumentSnapshot>() {
+//
+//            @Override
+//            public void onNext(DocumentSnapshot userRef) {
+//                //TODO Get user from firebase
+//            }
+//
+//            @Override
+//            public void onError(Throwable e) {
+//
+//            }
+//
+//            @Override
+//            public void onComplete() {
+//                Log.e(TAG, "onComplete");
+//            }
+//        };
+//    }
+//
+//    private Observable<DocumentSnapshot> getdocObservable(final QuerySnapshot queryDocumentSnapshots) {
+//
+//        return Observable.create(new ObservableOnSubscribe<DocumentSnapshot>() {
+//            @Override
+//            public void subscribe(ObservableEmitter<DocumentSnapshot> emitter) throws Exception {
+//                for (DocumentSnapshot note : queryDocumentSnapshots) {
+//                    if (!emitter.isDisposed()) {
+//                        emitter.onNext(note);
+//                    }
+//                }
+//
+//                if (!emitter.isDisposed()) {
+//                    emitter.onComplete();
+//                }
+//            }
+//        });
+//    }
+
 
     private void checkWorkmateComeHere() {
         PlaceHelper.getWhoComing(placeRef).addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
             @Override
             public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
                 if (!queryDocumentSnapshots.getDocuments().isEmpty()){
+
                     final int forFinish = queryDocumentSnapshots.size();
+
                     for (DocumentSnapshot userRef : queryDocumentSnapshots.getDocuments()){
+
                         UserHelper.getUser(userRef.get("uid").toString())
                                 .addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
                             @Override
                             public void onSuccess(DocumentSnapshot documentSnapshot) {
+
                                 if (!Objects.equals(documentSnapshot.get("uid"), currentUser.getUid())){
                                     List<Workmate> tmp = mDetailsViewModel.getWorkmatesThisPlace();
                                     tmp.add(documentSnapshot.toObject(Workmate.class));
                                     mDetailsViewModel.setWorkmatesThisPlace(tmp);
                                 }
+
                                 impToFinish++; //TODO change this RX Java
+
                                 if (impToFinish == forFinish){
+
                                     if (mDetailsViewModel.getWorkmatesThisPlace().isEmpty()) {
                                         mtvNoOne.setText(getString(R.string.onlyOne));
                                         changeUiIfNoWorkmateHere();
-                                    }else{
+                                    }
+                                    else{
                                         setUpRecyclerView();
                                     }
                                 }
@@ -330,11 +386,11 @@ public class DetailPlaceActivity extends BaseActivity {
                         currentUser = documentSnapshot.toObject(Workmate.class);
                         if (currentUser.getPlaceToGo() != null && currentUser.getPlaceToGo().get("placeRef").toString().equals(mPlaceDetails.getId())){
                             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                                fab.getDrawable().setTint(getResources().getColor(R.color.green)); //TOdo Change color
+                                fab.getDrawable().setTint(getResources().getColor(R.color.green));
                             }
                         }else {
                             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                                fab.getDrawable().setTint(getResources().getColor(R.color.grey)); //TOdo Change color
+                                fab.getDrawable().setTint(getResources().getColor(R.color.grey));
                             }
                         }
 
@@ -350,7 +406,7 @@ public class DetailPlaceActivity extends BaseActivity {
                                     currentUser.setPlaceToGo(null);
 
                                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                                        fab.getDrawable().setTint(getResources().getColor(R.color.grey));//TOdo Change color
+                                        fab.getDrawable().setTint(getResources().getColor(R.color.grey));
                                     }
                                     makeToast(getResources().getString(R.string.no_going_there));
 
@@ -366,7 +422,7 @@ public class DetailPlaceActivity extends BaseActivity {
                                     currentUser.setPlaceToGo(placeToGo);
 
                                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                                        fab.getDrawable().setTint(getResources().getColor(R.color.green)); //TOdo Change color
+                                        fab.getDrawable().setTint(getResources().getColor(R.color.green));
                                     }
                                     makeToast(getResources().getString(R.string.nice_choice));
 
@@ -381,7 +437,7 @@ public class DetailPlaceActivity extends BaseActivity {
                                     currentUser.setPlaceToGo(placeToGo);
 
                                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                                        fab.getDrawable().setTint(getResources().getColor(R.color.green)); //TOdo Change color
+                                        fab.getDrawable().setTint(getResources().getColor(R.color.green));
                                     }
                                     makeToast(getResources().getString(R.string.nice_choice));
                                 }

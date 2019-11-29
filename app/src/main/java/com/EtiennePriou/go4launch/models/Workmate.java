@@ -2,7 +2,6 @@ package com.EtiennePriou.go4launch.models;
 
 import androidx.annotation.Nullable;
 
-import java.util.HashMap;
 import java.util.Map;
 
 public class Workmate {
@@ -29,6 +28,11 @@ public class Workmate {
     public Map<String, Object> getPlaceToGo() { return placeToGo; }
 
     // --- SETTERS ---
+
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
     public void setPlaceToGo(Map<String, Object> placeToGo) {
         this.placeToGo = placeToGo;
     }

@@ -31,11 +31,6 @@ public class PlaceHelper {
         return FirebaseFirestore.getInstance().collection(COLLECTION_NAME).document(placeRef).collection(SUBCOLLECTION_WHO);
     }
 
-    public static DatabaseReference getReference(){
-        FirebaseDatabase database = FirebaseDatabase.getInstance();
-        return database.getReference(COLLECTION_NAME);
-    }
-
     // --- CREATE ---
 
     public static Task<Void> createFavorite(String uid, String placeRef, int note) {
@@ -54,10 +49,6 @@ public class PlaceHelper {
 
     // --- GET ---
 
-    public static Task<QuerySnapshot> getPlace(String placeRef){
-        return getWhoComingCollection(placeRef).get();
-    }
-
     public static Task<QuerySnapshot> getWhoComing(String placeRef){
         return getWhoComingCollection(placeRef).get();
     }
@@ -68,12 +59,6 @@ public class PlaceHelper {
 
     public static Task<DocumentSnapshot> getMyNote(String placeRef, String uid) {
         return getNoteCollection(placeRef).document(uid).get();
-    }
-
-    // --- UPDATE ---
-
-    public static Task<Void> updateNote(String uid, String placeRef, int note) {
-        return getNoteCollection(placeRef).document(uid).update("note", note);
     }
 
     // --- DELETE ---

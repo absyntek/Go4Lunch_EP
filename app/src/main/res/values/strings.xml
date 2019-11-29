@@ -142,9 +142,43 @@
     <string name="la_maison" translatable="false">la maison</string>
     <string name="no_going_there">You are not going there anymore</string>
     <string name="nice_choice">Nice choice ! see you there</string>
-    <string name="isJoining">is joining!</string>
     <string name="onlyOne">Actually you are the only one</string>
     <string name="notification_title">It\'s time to eat !</string>
     <string name="default_notification_channel_id" translatable="false">default</string>
+    <string name="PLACEREFERENCE" translatable="false">placeReference</string>
+    <string name="TOKEN" translatable="false">token</string>
+    <string name="tipe_your_text_here">Tipe your text Here</string>
+    <string name="send">Send</string>
+    <string name="actually_no_one_is_comming_here">Actually no one is comming Here !</string>
+    <string name="how_much_do_you_love_this_place">How much do you love this place ?</string>
+    <string name="known" translatable="false">(-)</string>
+    <string name="search">Search</string>
+    <string name="chat">First message ? don\'t be shy send it !</string>
+    <string name="ok">OK</string>
+    <string name="close_for_rest_of">Close for the rest of the day</string>
+    <string name="close_open_at">Close. Open at</string>
+    <string name="closingSoon">Closing Soon !</string>
+    <string name="openUntil">Open until</string>
+    <string name="closeToday">Close today</string>
+    <string name="the_note_sent">The note has been sent</string>
+    <string name="cancel">cancel</string>
+    <string name="PermissionGarented">Permission granted!</string>
+    <string name="permission_denied">Permission denied!</string>
+    <string name="noplacefound">No Places Found</string>
+    <string name="fetching_restaurant">Fetching nearby restaurants ...</string>
+    <string name="pleaseWait">Please wait...</string>
+    <string name="dont_know_open_time">We don\'t know the opening time for this place</string>
+    <string name="isJoining">is joining!</string>
+    <string name="isGoingTo">is going to</string>
+    <string name="didntChoose">didn\'t choose yet</string>
+    <string name="butYouAreTheOnlyOne">, but you are the only one to eat there ;(</string>
+    <string name="with">with :</string>
+    <string name="dontForget">Dont forget, you\'re going to :</string>
+    <string name="account">Account</string>
+    <string name="user_name">User Name</string>
+    <string name="delete_my_account">Delete my account</string>
+    <string name="type_usr_name">Type your user name for valid this action</string>
+    <string name="RECEIVER" translatable="false">receiver</string>
+    <string name="your_chatting_with">You\'re chatting with</string>
 
 </resources>

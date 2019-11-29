@@ -8,24 +8,38 @@
         android:id="@+id/textView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="4dp"
-        android:layout_marginStart="4dp"
-        android:layout_marginEnd="4dp"
         android:layout_gravity="center"
+        android:layout_marginStart="4dp"
+        android:layout_marginTop="4dp"
+        android:layout_marginEnd="4dp"
+        android:layout_marginBottom="4dp"
+        android:text="It look like you dont have internet"
         android:textSize="20sp"
-        android:text="@string/how_much_do_you_love_this_place" />
+        android:textStyle="bold" />
 
-    <RatingBar
-        android:id="@+id/ratingBoxNote"
+    <TextView
+        android:id="@+id/textView2"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
         android:layout_gravity="center"
-        android:numStars="5"
-        android:stepSize="1"
-        android:secondaryProgressTint="@color/colorPrimarySoft"
-        android:progressTint="@color/yellow"
-        android:progressBackgroundTint="@color/colorPrimarySoft"/>
+        android:layout_marginStart="4dp"
+        android:layout_marginTop="4dp"
+        android:layout_marginEnd="4dp"
+        android:layout_marginBottom="8dp"
+        android:text="Please connect your phone and press done button"
+        android:textSize="12sp" />
+
+    <TextView
+        android:id="@+id/textView3"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_marginStart="4dp"
+        android:layout_marginTop="4dp"
+        android:layout_marginEnd="4dp"
+        android:layout_marginBottom="8dp"
+        android:text="or you can leave the app if not possible"
+        android:textSize="12sp" />
 
     <LinearLayout
         android:layout_width="wrap_content"
@@ -42,7 +56,7 @@
             android:layout_marginEnd="4dp"
             android:textColor="@color/quantum_white_100"
             android:background="@drawable/circular_button"
-            android:text="@string/fui_cancel"/>
+            android:text="  leave the app !  "/>
         <Button
             android:id="@+id/ratingBoxValid"
             android:layout_width="wrap_content"
@@ -51,7 +65,7 @@
             android:layout_marginEnd="4dp"
             android:textColor="@color/quantum_white_100"
             android:background="@drawable/circular_button"
-            android:text="@string/ok"/>
+            android:text="Done !"/>
     </LinearLayout>
 
 </LinearLayout>

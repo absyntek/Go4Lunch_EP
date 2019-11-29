@@ -2,6 +2,7 @@ package com.EtiennePriou.go4launch.ui;
 
 import com.EtiennePriou.go4launch.BuildConfig;
 import com.EtiennePriou.go4launch.R;
+import com.EtiennePriou.go4launch.SplashActivity;
 import com.EtiennePriou.go4launch.base.BaseActivity;
 import com.EtiennePriou.go4launch.di.DI;
 import com.EtiennePriou.go4launch.di.ViewModelFactory;
@@ -47,7 +48,6 @@ import androidx.fragment.app.FragmentManager;
 import androidx.lifecycle.ViewModelProviders;
 
 import android.view.View;
-import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.SearchView;
 import android.widget.TextView;
@@ -60,7 +60,6 @@ import java.util.Objects;
 
 public class MainActivity extends BaseActivity implements NavigationView.OnNavigationItemSelectedListener {
 
-    private static final String PLACEREFERENCE = "placeReference";
     private int AUTOCOMPLETE_REQUEST_CODE = 1;
 
     private MainViewModel mMainViewModel;
@@ -68,9 +67,7 @@ public class MainActivity extends BaseActivity implements NavigationView.OnNavig
     private TextView mtv_Menu_Mail;
     private TextView mtv_Menu_Name;
     private ImageView imgMenuProfile;
-    private BottomNavigationView bottomNavigationView;
-
-    private Boolean search = true;
+    private MenuItem itemSearchPlace, itemSearchPlaceW;
 
     private BottomNavigationView.OnNavigationItemSelectedListener mOnNavigationItemSelectedListener
             = new BottomNavigationView.OnNavigationItemSelectedListener() {
@@ -78,25 +75,19 @@ public class MainActivity extends BaseActivity implements NavigationView.OnNavig
         public boolean onNavigationItemSelected(@NonNull MenuItem item) {
             switch (item.getItemId()) {
                 case R.id.navigation_map:
-                    search = true;
-                    if (mMainViewModel.getFragment(0) == null){
-                        mMainViewModel.setFragment(0,MapFragment.newInstance(mMainViewModel));
-                        showFragment(mMainViewModel.getFragment(0));
-                    }else showFragment(mMainViewModel.getFragment(0));
+                    itemSearchPlace.setVisible(true);
+                    itemSearchPlaceW.setVisible(false);
+                    showFragment(MapFragment.newInstance(mMainViewModel));
                     return true;
                 case R.id.navigation_list_view:
-                    search = true;
-                    if (mMainViewModel.getFragment(1) == null){
-                        mMainViewModel.setFragment(1,PlaceFragment.newInstance(mMainViewModel));
-                        showFragment(mMainViewModel.getFragment(1));
-                    }else showFragment(mMainViewModel.getFragment(1));
+                    itemSearchPlace.setVisible(true);
+                    itemSearchPlaceW.setVisible(false);
+                    showFragment(PlaceFragment.newInstance(mMainViewModel));
                     return true;
                 case R.id.navigation_workmates:
-                    search = false;
-                    if (mMainViewModel.getFragment(2) == null){
-                        mMainViewModel.setFragment(2,WorkmateFragment.newInstance(mMainViewModel));
-                        showFragment(mMainViewModel.getFragment(2));
-                    }else showFragment(mMainViewModel.getFragment(2));
+                    itemSearchPlace.setVisible(false);
+                    itemSearchPlaceW.setVisible(true);
+                    showFragment(WorkmateFragment.newInstance(mMainViewModel));
                     return true;
             }
             return false;
@@ -109,7 +100,7 @@ public class MainActivity extends BaseActivity implements NavigationView.OnNavig
     @Override
     protected void setupUi(){
         NavigationView navigationView = findViewById(R.id.nav_view);
-        bottomNavigationView = findViewById(R.id.bottom_nav_view);
+        BottomNavigationView bottomNavigationView = findViewById(R.id.bottom_nav_view);
         bottomNavigationView.setOnNavigationItemSelectedListener(mOnNavigationItemSelectedListener);
         navigationView.setNavigationItemSelectedListener(this);
 
@@ -134,15 +125,15 @@ public class MainActivity extends BaseActivity implements NavigationView.OnNavig
         FirebaseAuth auth = FirebaseAuth.getInstance();
         final FirebaseUser currentUser = auth.getCurrentUser();
         Places.initialize(this.getApplicationContext(), BuildConfig.PlaceApiKey);
-        if (currentUser != null){
+        if (currentUser != null) {
             mFireBaseApi.setCurrentUser(currentUser);
             UserHelper.getUser(currentUser.getUid()).addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
                 @Override
                 public void onSuccess(DocumentSnapshot documentSnapshot) {
                     mFireBaseApi.setActualUser(documentSnapshot.toObject(Workmate.class));
+                    setupMenuInfo(currentUser);
                 }
             });
-            setupMenuInfo(currentUser);
         }
         showFragment(MapFragment.newInstance(mMainViewModel));
     }
@@ -154,7 +145,7 @@ public class MainActivity extends BaseActivity implements NavigationView.OnNavig
 
     private void setupMenuInfo(FirebaseUser user){
         mtv_Menu_Mail.setText(user.getEmail());
-        mtv_Menu_Name.setText(user.getDisplayName());
+        mtv_Menu_Name.setText(mFireBaseApi.getActualUser().getUsername());
         Glide.with(imgMenuProfile.getContext())
                 .load(user.getPhotoUrl())
                 .apply(RequestOptions.circleCropTransform())
@@ -165,31 +156,31 @@ public class MainActivity extends BaseActivity implements NavigationView.OnNavig
     public boolean onCreateOptionsMenu(Menu menu) {
         MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.options_menu, menu);
-        MenuItem item = menu.findItem(R.id.app_bar_search);
+        itemSearchPlace = menu.findItem(R.id.app_bar_search);
+        itemSearchPlaceW = menu.findItem(R.id.app_bar_search_workmate);
+        SearchView searchViewWork = (SearchView) menu.findItem(R.id.app_bar_search_workmate).getActionView();
+        itemSearchPlace.setVisible(true);
+        itemSearchPlaceW.setVisible(false);
+        searchViewWork.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String s) {
+                return false;
+            }
+
+            @Override
+            public boolean onQueryTextChange(String s) {
+                mMainViewModel.setCurrentName(s);
+                return false;
+            }
+        });
         return true;
     }
 
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
 
-        if (item.getItemId() == R.id.app_bar_search && search){
+        if (item.getItemId() == R.id.app_bar_search){
             setSearch(); }
-        else if (item.getItemId() == R.id.app_bar_search_workmate && !search){
-            SearchView searchViewWork = findViewById(R.id.app_bar_search_workmate);
-            searchViewWork.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
-                @Override
-                public boolean onQueryTextSubmit(String s) {
-                    return false;
-                }
-
-                @Override
-                public boolean onQueryTextChange(String s) {
-                    mMainViewModel.setCurrentName(s);//TODO Check
-                    return false;
-                }
-            });
-
-        }
         return true;
     }
 
@@ -211,6 +202,7 @@ public class MainActivity extends BaseActivity implements NavigationView.OnNavig
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == AUTOCOMPLETE_REQUEST_CODE){
+            assert data != null;
             if (resultCode == RESULT_OK){
                 Place place = Autocomplete.getPlaceFromIntent(data);
                 Intent intent = new Intent(this, DetailPlaceActivity.class);
@@ -218,9 +210,10 @@ public class MainActivity extends BaseActivity implements NavigationView.OnNavig
                 startActivity(intent);
             }else if (resultCode == AutocompleteActivity.RESULT_ERROR){
                 Status status = Autocomplete.getStatusFromIntent(data);
+                assert status.getStatusMessage() != null;
                 Log.i("TAG", status.getStatusMessage());
             } else if (resultCode == RESULT_CANCELED) {
-                Toast.makeText(this, "cancel", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, mContext.getString(R.string.cancel), Toast.LENGTH_SHORT).show();
                 // The user canceled the operation.
             }
         }
@@ -245,9 +238,10 @@ public class MainActivity extends BaseActivity implements NavigationView.OnNavig
                     @Override
                     public void onSuccess(DocumentSnapshot documentSnapshot) {
                         Workmate user = documentSnapshot.toObject(Workmate.class);
+                        assert user != null;
                         if (user.getPlaceToGo() != null){//TODO faire quelque chose si null
                             Intent intent = new Intent(getApplicationContext(), DetailPlaceActivity.class);
-                            intent.putExtra(PLACEREFERENCE, Objects.requireNonNull(user.getPlaceToGo().get("placeRef").toString()));
+                            intent.putExtra(getString(R.string.PLACEREFERENCE), Objects.requireNonNull(Objects.requireNonNull(user.getPlaceToGo().get("placeRef")).toString()));
                             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                             getApplication().startActivity(intent);
                         }
@@ -260,6 +254,8 @@ public class MainActivity extends BaseActivity implements NavigationView.OnNavig
                 break;
             case R.id.nav_logout:
                 FirebaseAuth.getInstance().signOut();
+                Intent intent = new Intent(this,SplashActivity.class);
+                startActivity(intent);
                 this.finish();
                 break;
         }

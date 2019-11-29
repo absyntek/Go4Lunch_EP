@@ -33,7 +33,6 @@
             android:layout_gravity="center"
             android:layout_marginTop="2dp"
             android:layout_marginBottom="2dp"
-            android:text="--:--"
             android:textSize="@dimen/default_text_size_mini"
             android:textStyle="bold" />
     </LinearLayout>
@@ -44,8 +43,8 @@
         android:layout_height="wrap_content"
         android:layout_alignParentTop="true"
         android:layout_gravity="center"
-        android:layout_marginStart="5dp"
-        android:layout_marginTop="4dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
         android:layout_toEndOf="@+id/containerChatProfile"
         android:background="@drawable/ic_chat_message_background"
         android:orientation="vertical">

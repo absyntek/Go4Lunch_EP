@@ -23,7 +23,6 @@
                 android:layout_height="wrap_content"
                 android:layout_marginStart="8dp"
                 android:layout_marginTop="16dp"
-                android:text="TextView"
                 android:textColor="@color/quantum_white_100"
                 android:textSize="18sp"
                 app:layout_constraintStart_toStartOf="parent"
@@ -52,7 +51,6 @@
                 android:layout_marginStart="8dp"
                 android:layout_marginTop="8dp"
                 android:layout_marginBottom="24dp"
-                android:text="TextView"
                 android:textColor="@color/quantum_white_100"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
@@ -146,7 +144,7 @@
                 android:visibility="gone"
                 android:layout_gravity="center_horizontal"
                 android:layout_marginTop="8dp"
-                android:text="Actually no one is comming Here !" />
+                android:text="@string/actually_no_one_is_comming_here" />
         </LinearLayout>
 
         <androidx.recyclerview.widget.RecyclerView
