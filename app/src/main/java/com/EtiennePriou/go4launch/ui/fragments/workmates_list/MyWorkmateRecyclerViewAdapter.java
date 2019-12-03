@@ -14,8 +14,10 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.EtiennePriou.go4launch.R;
 import com.EtiennePriou.go4launch.models.Workmate;
 import com.EtiennePriou.go4launch.ui.chat.ChatActivity;
+import com.EtiennePriou.go4launch.ui.details.DetailPlaceActivity;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.RequestOptions;
+import com.google.android.gms.location.DetectedActivity;
 import com.google.firebase.auth.FirebaseAuth;
 
 import java.util.List;
@@ -51,6 +53,14 @@ public class MyWorkmateRecyclerViewAdapter extends RecyclerView.Adapter<MyWorkma
             String whereIsGoing;
             if (workmate.getPlaceToGo() != null){
                 whereIsGoing = workmate.getUsername() + holder.mContext.getString(R.string.isGoingTo) + workmate.getPlaceToGo().get("placeName").toString();
+                holder.itemView.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        Intent details = new Intent(view.getContext(), DetailPlaceActivity.class);
+                        details.putExtra(view.getResources().getString(R.string.PLACEREFERENCE), Objects.requireNonNull(workmate.getPlaceToGo().get("placeRef")).toString());
+                        view.getContext().startActivity(details);
+                    }
+                });
             }else {
                 whereIsGoing = workmate.getUsername() + holder.mContext.getString(R.string.didntChoose);
             }

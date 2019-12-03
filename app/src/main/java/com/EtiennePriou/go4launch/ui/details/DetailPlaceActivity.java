@@ -154,7 +154,7 @@ public class DetailPlaceActivity extends BaseActivity {
     }
 
     private void updateUi() {
-        DetailHelper.getPhoto(mPlaceDetails, mPlacesApi.getPlacesClient()).addOnSuccessListener(new OnSuccessListener<FetchPhotoResponse>() {
+        DetailHelper.getPhotoForDetail(mPlaceDetails, mPlacesApi.getPlacesClient()).addOnSuccessListener(new OnSuccessListener<FetchPhotoResponse>() {
             @Override
             public void onSuccess(FetchPhotoResponse fetchPhotoResponse) {
                 Glide.with(mimgDetailsTop).load(fetchPhotoResponse.getBitmap()).into(mimgDetailsTop);

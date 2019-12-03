@@ -77,17 +77,20 @@ public class MainActivity extends BaseActivity implements NavigationView.OnNavig
                 case R.id.navigation_map:
                     itemSearchPlace.setVisible(true);
                     itemSearchPlaceW.setVisible(false);
-                    showFragment(MapFragment.newInstance(mMainViewModel));
+                    mMainViewModel.setWichFrag(1);
+                    showFragment(1);
                     return true;
                 case R.id.navigation_list_view:
                     itemSearchPlace.setVisible(true);
                     itemSearchPlaceW.setVisible(false);
-                    showFragment(PlaceFragment.newInstance(mMainViewModel));
+                    mMainViewModel.setWichFrag(2);
+                    showFragment(2);
                     return true;
                 case R.id.navigation_workmates:
                     itemSearchPlace.setVisible(false);
                     itemSearchPlaceW.setVisible(true);
-                    showFragment(WorkmateFragment.newInstance(mMainViewModel));
+                    mMainViewModel.setWichFrag(3);
+                    showFragment(3);
                     return true;
             }
             return false;
@@ -135,7 +138,7 @@ public class MainActivity extends BaseActivity implements NavigationView.OnNavig
                 }
             });
         }
-        showFragment(MapFragment.newInstance(mMainViewModel));
+        showFragment(mMainViewModel.getWichFrag());
     }
 
     private void configureViewModel(){
@@ -266,7 +269,19 @@ public class MainActivity extends BaseActivity implements NavigationView.OnNavig
 
     }
 
-    private void showFragment(Fragment fragment) {
+    private void showFragment(int wichFrag) {
+        Fragment fragment;
+        switch (wichFrag) {
+            case 2 :
+                fragment = PlaceFragment.newInstance(mMainViewModel);
+                break;
+            case 3 :
+                fragment = WorkmateFragment.newInstance(mMainViewModel);
+                break;
+            default:
+                fragment = MapFragment.newInstance(mMainViewModel);
+                break;
+        }
         FragmentManager fragmentManager = getSupportFragmentManager();
         fragmentManager.beginTransaction()
                 .replace(R.id.container, fragment)

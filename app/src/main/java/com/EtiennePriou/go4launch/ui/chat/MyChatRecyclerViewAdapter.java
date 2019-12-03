@@ -38,13 +38,9 @@ public class MyChatRecyclerViewAdapter extends FirestoreRecyclerAdapter<Message,
     //FOR COMMUNICATION
     private Listener callback;
 
-    /**
-     * Create a new RecyclerView adapter that listens to a Firestore Query.  See {@link
-     * FirestoreRecyclerOptions} for configuration options.
-     *
-     */
-    public MyChatRecyclerViewAdapter(@NonNull FirestoreRecyclerOptions<Message> options, RequestManager glide,
-    Listener callback, String idCurrentUser) {
+
+    MyChatRecyclerViewAdapter(@NonNull FirestoreRecyclerOptions<Message> options, RequestManager glide,
+                              Listener callback, String idCurrentUser) {
         super(options);
         this.glide = glide;
         this.callback = callback;
@@ -69,7 +65,7 @@ public class MyChatRecyclerViewAdapter extends FirestoreRecyclerAdapter<Message,
         this.callback.onDataChanged();
     }
 
-    public class MessageViewHolder extends RecyclerView.ViewHolder {
+    class MessageViewHolder extends RecyclerView.ViewHolder {
 
         private final int colorCurrentUser;
         private final int colorRemoteUser;
@@ -79,7 +75,7 @@ public class MyChatRecyclerViewAdapter extends FirestoreRecyclerAdapter<Message,
         private LinearLayout profileContainer,messageContainer;
         private RelativeLayout rootView;
 
-        public MessageViewHolder(@NonNull View itemView) {
+        MessageViewHolder(@NonNull View itemView) {
             super(itemView);
             colorCurrentUser = ContextCompat.getColor(itemView.getContext(), R.color.colorPrimary);
             colorRemoteUser = ContextCompat.getColor(itemView.getContext(), R.color.colorPrimarySoft);
@@ -91,7 +87,7 @@ public class MyChatRecyclerViewAdapter extends FirestoreRecyclerAdapter<Message,
             rootView = itemView.findViewById(R.id.chat_root_view);
         }
 
-        public void updateWithMessage(Message message, String currentUserId, RequestManager glide){
+        void updateWithMessage(Message message, String currentUserId, RequestManager glide){
 
             // Check if current user is the sender
             Boolean isCurrentUser = message.getUserSender().getUid().equals(currentUserId);

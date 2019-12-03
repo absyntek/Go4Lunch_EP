@@ -18,7 +18,20 @@ public class DetailHelper {
     public static Task<FetchPhotoResponse> getPhoto (Place placeModel, PlacesClient placesClient){
 
         PhotoMetadata photoMetadata = placeModel.getPhotoMetadatas().get(0);
-        FetchPhotoRequest photoRequest = FetchPhotoRequest.builder(photoMetadata).build();
+        FetchPhotoRequest photoRequest = FetchPhotoRequest.builder(photoMetadata)
+                .setMaxHeight(200)
+                .setMaxWidth(200)
+                .build();
+
+        return placesClient.fetchPhoto(photoRequest);
+    }
+
+    // -- load image --
+    public static Task<FetchPhotoResponse> getPhotoForDetail (Place placeModel, PlacesClient placesClient){
+
+        PhotoMetadata photoMetadata = placeModel.getPhotoMetadatas().get(0);
+        FetchPhotoRequest photoRequest = FetchPhotoRequest.builder(photoMetadata)
+                .build();
 
         return placesClient.fetchPhoto(photoRequest);
     }

@@ -19,7 +19,6 @@ import java.util.Map;
 public class CheckTime {
 
     public static Map<String, Object> getStringTime (OpeningHours openingHours, Context context){
-        Context mContext1 = context;
         List<Period> actualPeriod = new ArrayList<>();
         final Date date = new Date();
         String tosend;
@@ -68,14 +67,14 @@ public class CheckTime {
                 Map<String, Object> toCreate = new HashMap<>();
 
                 if (period.getOpen().getTime().compareTo(localTime)<0 && period.getClose().getTime().compareTo(localTime)>0){
-                    tosend = mContext1.getResources().getString(R.string.openUntil) + period.getOpen().getTime().getHours() + ":" + formatterMinutes.format(period.getOpen().getTime().getMinutes());
+                    tosend = context.getResources().getString(R.string.openUntil) + period.getOpen().getTime().getHours() + ":" + formatterMinutes.format(period.getOpen().getTime().getMinutes());
                     toReturn.put("open", true);
                     toReturn.put("string", tosend);
                     return toReturn;
                 }
 
                 else if (period.getOpen().getTime().compareTo(localTime)<0 && period.getClose().getTime().compareTo(localTime)==0){
-                    tosend = mContext1.getResources().getString(R.string.closingSoon);
+                    tosend = context.getResources().getString(R.string.closingSoon);
                     toReturn.put("open", true);
                     toReturn.put("string", tosend);
                     return toReturn;
@@ -84,7 +83,7 @@ public class CheckTime {
                 else if (period.getOpen().getTime().compareTo(localTime)>0 && period.getClose().getTime().compareTo(localTime)>0){
 
                     int tmpScore = period.getOpen().getTime().compareTo(localTime) + period.getClose().getTime().compareTo(localTime);
-                    tosend = mContext1.getResources().getString(R.string.close_open_at) + period.getOpen().getTime().getHours() + ":" + formatterMinutes.format(period.getOpen().getTime().getMinutes());
+                    tosend = context.getResources().getString(R.string.close_open_at) + period.getOpen().getTime().getHours() + ":" + formatterMinutes.format(period.getOpen().getTime().getMinutes());
                     toCreate.put("score", tmpScore);
                     toCreate.put("string", tosend);
                     maps.add(toCreate);
@@ -93,7 +92,7 @@ public class CheckTime {
 
             if (maps.isEmpty()){
                 toReturn.put("open", false);
-                toReturn.put("string", mContext1.getResources().getString(R.string.close_for_rest_of));
+                toReturn.put("string", context.getResources().getString(R.string.close_for_rest_of));
                 return toReturn;
             }
             else if (maps.size() == 1){
@@ -115,7 +114,7 @@ public class CheckTime {
 
         }else {
             toReturn.put("open", false);
-            toReturn.put("string", mContext1.getResources().getString(R.string.closeToday));
+            toReturn.put("string", context.getResources().getString(R.string.closeToday));
             return toReturn;
         }
     }

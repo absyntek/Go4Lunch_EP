@@ -31,7 +31,7 @@
     <string name="cancel">annuler</string>
     <string name="closeToday">Fermé pour la journée</string>
     <string name="close_for_rest_of">Fermé pour le reste de la journée.</string>
-    <string name="close_open_at">Fermé. Ouvre à </string>
+    <string name="close_open_at">Fermé. Ouvre à\ </string>
     <string name="closingSoon">Ferme Bientôt !</string>
     <string name="didntChoose"> n\'a pas encore choisi</string>
     <string name="dontForget">N\'oublie pas, tu mange à :</string>

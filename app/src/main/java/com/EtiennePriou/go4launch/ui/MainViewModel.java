@@ -16,9 +16,18 @@ public class MainViewModel extends ViewModel {
 
     private Location mLocation;
     private MutableLiveData<String> currentName = new MutableLiveData<>();
+    private int wichFrag = 1;
 
     public MainViewModel() {
         mLocation = null;
+    }
+
+    public int getWichFrag() {
+        return wichFrag;
+    }
+
+    public void setWichFrag(int wichFrag) {
+        this.wichFrag = wichFrag;
     }
 
     public MutableLiveData<String> getWorkmateSearch() {
