@@ -19,20 +19,19 @@ public class DetailHelper {
 
         PhotoMetadata photoMetadata = placeModel.getPhotoMetadatas().get(0);
         FetchPhotoRequest photoRequest = FetchPhotoRequest.builder(photoMetadata)
-                .setMaxHeight(200)
-                .setMaxWidth(200)
+                .setMaxHeight(100)
+                .setMaxWidth(100)
                 .build();
 
         return placesClient.fetchPhoto(photoRequest);
     }
 
     // -- load image --
-    public static Task<FetchPhotoResponse> getPhotoForDetail (Place placeModel, PlacesClient placesClient){
-
-        PhotoMetadata photoMetadata = placeModel.getPhotoMetadatas().get(0);
+    public static Task<FetchPhotoResponse> getPhotoForDetail (PhotoMetadata photoMetadata, PlacesClient placesClient){
         FetchPhotoRequest photoRequest = FetchPhotoRequest.builder(photoMetadata)
+                .setMaxHeight(200)
+                .setMaxWidth(300)
                 .build();
-
         return placesClient.fetchPhoto(photoRequest);
     }
 

@@ -20,6 +20,7 @@ import com.google.android.libraries.places.api.net.FetchPlaceResponse;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import androidx.annotation.NonNull;
+import androidx.cardview.widget.CardView;
 import androidx.core.app.ActivityCompat;
 import androidx.lifecycle.ViewModelProviders;
 import androidx.recyclerview.widget.DividerItemDecoration;
@@ -27,13 +28,11 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.Manifest;
-import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Build;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
@@ -45,8 +44,8 @@ import android.widget.Toast;
 import com.EtiennePriou.go4launch.R;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentSnapshot;
-import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
+import com.smarteist.autoimageslider.SliderView;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -54,20 +53,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-import io.reactivex.Observable;
-import io.reactivex.ObservableEmitter;
-import io.reactivex.ObservableOnSubscribe;
-import io.reactivex.Observer;
-import io.reactivex.android.schedulers.AndroidSchedulers;
-import io.reactivex.disposables.Disposable;
-import io.reactivex.functions.Consumer;
-import io.reactivex.internal.observers.BlockingBaseObserver;
-import io.reactivex.observers.DisposableObserver;
-import io.reactivex.schedulers.Schedulers;
-
 public class DetailPlaceActivity extends BaseActivity {
 
     private ImageView mimgNoOne, mimgDetailsTop;
+    private SliderView mSliderView;
     private RatingBar mratingBarPlace, ratingBar;
     private TextView mtvNoOne, mtvPlaceName, mtvPlaceAdresse;
     private Button mbtnCall, mbtnLike, mbtnWebsite;
@@ -94,6 +83,7 @@ public class DetailPlaceActivity extends BaseActivity {
         mimgNoOne = findViewById(R.id.imgNoOne);
         mratingBarPlace = findViewById(R.id.ratingPlaceNote);
         mimgDetailsTop = findViewById(R.id.imgDetailsTop);
+        mSliderView = findViewById(R.id.imageSlider);
         mtvNoOne = findViewById(R.id.tvNoOne);
         mtvPlaceName = findViewById(R.id.tvNameDetails);
         mtvPlaceAdresse =findViewById(R.id.tvAdresseDetails);
@@ -154,12 +144,14 @@ public class DetailPlaceActivity extends BaseActivity {
     }
 
     private void updateUi() {
-        DetailHelper.getPhotoForDetail(mPlaceDetails, mPlacesApi.getPlacesClient()).addOnSuccessListener(new OnSuccessListener<FetchPhotoResponse>() {
-            @Override
-            public void onSuccess(FetchPhotoResponse fetchPhotoResponse) {
-                Glide.with(mimgDetailsTop).load(fetchPhotoResponse.getBitmap()).into(mimgDetailsTop);
-            }
-        });
+        if (mPlaceDetails.getPhotoMetadatas() != null || !mPlaceDetails.getPhotoMetadatas().isEmpty()){
+            mSliderView.setVisibility(View.VISIBLE);
+            mimgDetailsTop.setVisibility(View.GONE);
+            mSliderView.setSliderAdapter(new SliderAdapter(mPlaceDetails.getPhotoMetadatas()));
+        }else {
+            mSliderView.setVisibility(View.GONE);
+            mimgDetailsTop.setVisibility(View.VISIBLE);
+        }
         mtvPlaceName.setText(mPlaceDetails.getName());
         mtvPlaceAdresse.setText(mPlaceDetails.getAddress());
     }
@@ -273,62 +265,6 @@ public class DetailPlaceActivity extends BaseActivity {
         });
     }
 
-//    private void tmp (){
-//        PlaceHelper.getWhoComing(placeRef).addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
-//            @Override
-//            public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
-//                if (!queryDocumentSnapshots.isEmpty()){
-//                    Observable<DocumentSnapshot> docObservable = getdocObservable(queryDocumentSnapshots);
-//
-//                    DisposableObserver<DocumentSnapshot> docObserver = getdocObserver();
-//
-//                    docObservable.observeOn(Schedulers.io())
-//                            .subscribeOn(AndroidSchedulers.mainThread())
-//                            .distinct()
-//                            .subscribeWith(docObserver);
-//                }
-//            }
-//        });
-//    }
-//
-//    private DisposableObserver<DocumentSnapshot> getdocObserver() {
-//        return new DisposableObserver<DocumentSnapshot>() {
-//
-//            @Override
-//            public void onNext(DocumentSnapshot userRef) {
-//                //TODO Get user from firebase
-//            }
-//
-//            @Override
-//            public void onError(Throwable e) {
-//
-//            }
-//
-//            @Override
-//            public void onComplete() {
-//                Log.e(TAG, "onComplete");
-//            }
-//        };
-//    }
-//
-//    private Observable<DocumentSnapshot> getdocObservable(final QuerySnapshot queryDocumentSnapshots) {
-//
-//        return Observable.create(new ObservableOnSubscribe<DocumentSnapshot>() {
-//            @Override
-//            public void subscribe(ObservableEmitter<DocumentSnapshot> emitter) throws Exception {
-//                for (DocumentSnapshot note : queryDocumentSnapshots) {
-//                    if (!emitter.isDisposed()) {
-//                        emitter.onNext(note);
-//                    }
-//                }
-//
-//                if (!emitter.isDisposed()) {
-//                    emitter.onComplete();
-//                }
-//            }
-//        });
-//    }
-
 
     private void checkWorkmateComeHere() {
         PlaceHelper.getWhoComing(placeRef).addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
@@ -351,7 +287,7 @@ public class DetailPlaceActivity extends BaseActivity {
                                     mDetailsViewModel.setWorkmatesThisPlace(tmp);
                                 }
 
-                                impToFinish++; //TODO change this RX Java
+                                impToFinish++;
 
                                 if (impToFinish == forFinish){
 
