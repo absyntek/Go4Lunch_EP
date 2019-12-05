@@ -21,6 +21,7 @@ import com.EtiennePriou.go4launch.services.places.PlacesApi;
 import com.EtiennePriou.go4launch.services.places.helpers.DetailHelper;
 import com.EtiennePriou.go4launch.ui.MainViewModel;
 import com.EtiennePriou.go4launch.ui.details.DetailPlaceActivity;
+import com.EtiennePriou.go4launch.utils.CheckDate;
 import com.EtiennePriou.go4launch.utils.CheckTime;
 import com.EtiennePriou.go4launch.utils.NoteCalcul;
 import com.bumptech.glide.Glide;
@@ -28,6 +29,7 @@ import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.libraries.places.api.model.Place;
 import com.google.android.libraries.places.api.net.FetchPhotoResponse;
 import com.google.android.libraries.places.api.net.FetchPlaceResponse;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
 
 import java.util.List;
@@ -101,7 +103,13 @@ public class MyPlaceRecyclerViewAdapter extends RecyclerView.Adapter<MyPlaceRecy
                 .addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
             @Override
             public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
-                holder.mtvNbrWorkmates.setText(String.valueOf(queryDocumentSnapshots.size()));
+                int tmp = 0;
+                for (DocumentSnapshot documentSnapshot : queryDocumentSnapshots){
+                    if (!CheckDate.isDatePast(documentSnapshot.getDate("dateCreated"))){
+                        tmp++;
+                    }
+                }
+                holder.mtvNbrWorkmates.setText(String.valueOf(tmp));
             }
         });
 

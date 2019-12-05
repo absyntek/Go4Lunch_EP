@@ -105,14 +105,6 @@ public class MyChatRecyclerViewAdapter extends FirestoreRecyclerAdapter<Message,
                         .apply(RequestOptions.circleCropTransform())
                         .into(imageViewProfile);
 
-//            // Update image sent ImageView
-//            if (message.getUrlImage() != null){
-//                glide.load(message.getUrlImage())
-//                        .into(imageViewSent);
-//                this.imageViewSent.setVisibility(View.VISIBLE);
-//            } else {
-//                this.imageViewSent.setVisibility(View.GONE);
-//            }
 
             //Update Message Bubble Color Background
             ((GradientDrawable) messageContainer.getBackground()).setColor(isCurrentUser ? colorCurrentUser : colorRemoteUser);
@@ -132,11 +124,6 @@ public class MyChatRecyclerViewAdapter extends FirestoreRecyclerAdapter<Message,
             RelativeLayout.LayoutParams paramsLayoutContent = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
             paramsLayoutContent.addRule(isSender ? RelativeLayout.LEFT_OF : RelativeLayout.RIGHT_OF, R.id.containerChatProfile);
             this.messageContainer.setLayoutParams(paramsLayoutContent);
-
-//            // CARDVIEW IMAGE SEND
-//            RelativeLayout.LayoutParams paramsImageView = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
-//            paramsImageView.addRule(isSender ? RelativeLayout.ALIGN_LEFT : RelativeLayout.ALIGN_RIGHT, R.id.activity_mentor_chat_item_message_container_text_message_container);
-//            this.cardViewImageSent.setLayoutParams(paramsImageView);
 
             this.rootView.requestLayout();
         }

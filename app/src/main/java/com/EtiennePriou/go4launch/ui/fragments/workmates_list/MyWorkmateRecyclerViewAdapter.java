@@ -15,6 +15,7 @@ import com.EtiennePriou.go4launch.R;
 import com.EtiennePriou.go4launch.models.Workmate;
 import com.EtiennePriou.go4launch.ui.chat.ChatActivity;
 import com.EtiennePriou.go4launch.ui.details.DetailPlaceActivity;
+import com.EtiennePriou.go4launch.utils.CheckDate;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.RequestOptions;
 import com.google.android.gms.location.DetectedActivity;
@@ -51,13 +52,13 @@ public class MyWorkmateRecyclerViewAdapter extends RecyclerView.Adapter<MyWorkma
             holder.workmateName.setText(isJoin);
         }else{
             String whereIsGoing;
-            if (workmate.getPlaceToGo() != null){
-                whereIsGoing = workmate.getUsername() + holder.mContext.getString(R.string.isGoingTo) + workmate.getPlaceToGo().get("placeName").toString();
+            if (workmate.getPlaceToGo() != null && !CheckDate.isDatePast(workmate.getPlaceToGo().getDateCreated())){
+                whereIsGoing = workmate.getUsername() + holder.mContext.getString(R.string.isGoingTo) + workmate.getPlaceToGo().getPlaceName();
                 holder.itemView.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {
                         Intent details = new Intent(view.getContext(), DetailPlaceActivity.class);
-                        details.putExtra(view.getResources().getString(R.string.PLACEREFERENCE), Objects.requireNonNull(workmate.getPlaceToGo().get("placeRef")).toString());
+                        details.putExtra(view.getResources().getString(R.string.PLACEREFERENCE), Objects.requireNonNull(workmate.getPlaceToGo().getPlaceRef()));
                         view.getContext().startActivity(details);
                     }
                 });
@@ -69,10 +70,14 @@ public class MyWorkmateRecyclerViewAdapter extends RecyclerView.Adapter<MyWorkma
         }
 
 
-        Glide.with(holder.workmateImage)
-                .load(workmate.getUrlPicture())
-                .apply(RequestOptions.circleCropTransform())
-                .into(holder.workmateImage);
+        if (workmate.getUrlPicture() != null)
+        {
+            Glide.with(holder.workmateImage)
+                    .load(workmate.getUrlPicture())
+                    .apply(RequestOptions.circleCropTransform())
+                    .into(holder.workmateImage);
+        }
+
 
         holder.btnChat.setOnClickListener(new View.OnClickListener() {
             @Override

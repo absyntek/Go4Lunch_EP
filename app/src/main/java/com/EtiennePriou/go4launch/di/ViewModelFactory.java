@@ -4,7 +4,6 @@ import androidx.annotation.NonNull;
 import androidx.lifecycle.ViewModel;
 import androidx.lifecycle.ViewModelProvider;
 
-import com.EtiennePriou.go4launch.ui.chat.ChatViewModel;
 import com.EtiennePriou.go4launch.ui.details.DetailsViewModel;
 import com.EtiennePriou.go4launch.ui.MainViewModel;
 
@@ -22,11 +21,6 @@ public class ViewModelFactory implements ViewModelProvider.Factory {
             if (modelClass.isInstance(detailsViewModel)){
                 return modelClass.cast(detailsViewModel);
             }else throw new IllegalArgumentException("Unknown ViewModel class");
-        }else if (modelClass.isAssignableFrom(ChatViewModel.class)) {
-            ChatViewModel chatViewModel = new ChatViewModel();
-            if (modelClass.isInstance(chatViewModel)) {
-                return modelClass.cast(chatViewModel);
-            } else throw new IllegalArgumentException("Unknown ViewModel class");
         }
         throw new IllegalArgumentException("Unknown ViewModel class");
     }

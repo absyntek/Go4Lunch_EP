@@ -3,24 +3,24 @@ package com.EtiennePriou.go4launch.ui.details;
 import com.EtiennePriou.go4launch.base.BaseActivity;
 import com.EtiennePriou.go4launch.di.DI;
 import com.EtiennePriou.go4launch.di.ViewModelFactory;
+import com.EtiennePriou.go4launch.models.PlaceToGo;
+import com.EtiennePriou.go4launch.models.WhoComing;
 import com.EtiennePriou.go4launch.models.Workmate;
 import com.EtiennePriou.go4launch.services.firebase.helpers.PlaceHelper;
 import com.EtiennePriou.go4launch.services.firebase.helpers.UserHelper;
 import com.EtiennePriou.go4launch.services.places.PlacesApi;
 import com.EtiennePriou.go4launch.services.places.helpers.DetailHelper;
 import com.EtiennePriou.go4launch.ui.fragments.workmates_list.MyWorkmateRecyclerViewAdapter;
+import com.EtiennePriou.go4launch.utils.CheckDate;
 import com.EtiennePriou.go4launch.utils.NoteCalcul;
-import com.bumptech.glide.Glide;
 import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.libraries.places.api.model.Place;
-import com.google.android.libraries.places.api.net.FetchPhotoResponse;
 import com.google.android.libraries.places.api.net.FetchPlaceResponse;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import androidx.annotation.NonNull;
-import androidx.cardview.widget.CardView;
 import androidx.core.app.ActivityCompat;
 import androidx.lifecycle.ViewModelProviders;
 import androidx.recyclerview.widget.DividerItemDecoration;
@@ -48,9 +48,8 @@ import com.google.firebase.firestore.QuerySnapshot;
 import com.smarteist.autoimageslider.SliderView;
 
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.Date;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 
 public class DetailPlaceActivity extends BaseActivity {
@@ -69,6 +68,7 @@ public class DetailPlaceActivity extends BaseActivity {
     private String placeRef;
     private Workmate currentUser;
     private int impToFinish = 0;
+    private List<Workmate> workmateList = new ArrayList<>();
 
     private DetailsViewModel mDetailsViewModel;
 
@@ -97,9 +97,9 @@ public class DetailPlaceActivity extends BaseActivity {
     @Override
     protected void withOnCreate() {
         mPlacesApi = DI.getServiceApiPlaces();
-        configureViewModel();
-
         placeRef = getIntent().getStringExtra(getResources().getString(R.string.PLACEREFERENCE));
+
+        configureViewModel();
         getPlaceDetails();
     }
 
@@ -113,24 +113,11 @@ public class DetailPlaceActivity extends BaseActivity {
         DetailHelper.getDetails(placeRef, mPlacesApi.getPlacesClient()).addOnSuccessListener(new OnSuccessListener<FetchPlaceResponse>() {
             @Override
             public void onSuccess(FetchPlaceResponse response) {
-                Place place = response.getPlace();
-                mPlaceDetails = place;
-
+                mPlaceDetails = response.getPlace();
                 checkNote();
                 setMiddleBarButtons();
                 setFabButton();
-
-                if (mDetailsViewModel.getWorkmatesThisPlace() == null){
-                    mDetailsViewModel.setWorkmatesThisPlace(new ArrayList<Workmate>());
-                    checkWorkmateComeHere();
-                }else{
-                    if (mDetailsViewModel.getWorkmatesThisPlace().isEmpty()) {
-                        changeUiIfNoWorkmateHere();
-                    }else{
-                        setUpRecyclerView();
-                    }
-                }
-
+                checkWorkmateComeHere();
                 updateUi();
             }
         }).addOnFailureListener(new OnFailureListener() {
@@ -274,43 +261,35 @@ public class DetailPlaceActivity extends BaseActivity {
 
                     final int forFinish = queryDocumentSnapshots.size();
 
-                    for (DocumentSnapshot userRef : queryDocumentSnapshots.getDocuments()){
-
-                        UserHelper.getUser(userRef.get("uid").toString())
+                    for (DocumentSnapshot userRef : queryDocumentSnapshots) {
+                        if (!CheckDate.isDatePast(userRef.getDate("dateCreated"))) {
+                        UserHelper.getUser(userRef.getString("uid"))
                                 .addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
-                            @Override
-                            public void onSuccess(DocumentSnapshot documentSnapshot) {
+                                    @Override
+                                    public void onSuccess(DocumentSnapshot documentSnapshot) {
+                                        workmateList.add(documentSnapshot.toObject(Workmate.class));
+                                        impToFinish++;
 
-                                if (!Objects.equals(documentSnapshot.get("uid"), currentUser.getUid())){
-                                    List<Workmate> tmp = mDetailsViewModel.getWorkmatesThisPlace();
-                                    tmp.add(documentSnapshot.toObject(Workmate.class));
-                                    mDetailsViewModel.setWorkmatesThisPlace(tmp);
-                                }
-
-                                impToFinish++;
-
-                                if (impToFinish == forFinish){
-
-                                    if (mDetailsViewModel.getWorkmatesThisPlace().isEmpty()) {
-                                        mtvNoOne.setText(getString(R.string.onlyOne));
-                                        changeUiIfNoWorkmateHere();
+                                        if (impToFinish == forFinish) {
+                                            if (workmateList.isEmpty()) {
+                                                changeUiIfNoWorkmateHere();
+                                            } else {
+                                                setUpRecyclerView(workmateList);
+                                            }
+                                        }
                                     }
-                                    else{
-                                        setUpRecyclerView();
-                                    }
-                                }
-                            }
-                        });
+                                });
+                        }
                     }
                 }else  changeUiIfNoWorkmateHere();
             }
         });
     }
 
-    private void setUpRecyclerView (){
+    private void setUpRecyclerView (List<Workmate> workmateList){
         mRecyclerView.setLayoutManager(new LinearLayoutManager(this));
         mRecyclerView.addItemDecoration(new DividerItemDecoration(this, DividerItemDecoration.VERTICAL));
-        mRecyclerView.setAdapter(new MyWorkmateRecyclerViewAdapter(mDetailsViewModel.getWorkmatesThisPlace(),0));
+        mRecyclerView.setAdapter(new MyWorkmateRecyclerViewAdapter(workmateList,0));
     }
 
     private void setFabButton (){
@@ -320,7 +299,7 @@ public class DetailPlaceActivity extends BaseActivity {
                     public void onSuccess(DocumentSnapshot documentSnapshot) {
 
                         currentUser = documentSnapshot.toObject(Workmate.class);
-                        if (currentUser.getPlaceToGo() != null && currentUser.getPlaceToGo().get("placeRef").toString().equals(mPlaceDetails.getId())){
+                        if (currentUser.getPlaceToGo() != null && currentUser.getPlaceToGo().getPlaceRef().equals(mPlaceDetails.getId())){
                             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                                 fab.getDrawable().setTint(getResources().getColor(R.color.green));
                             }
@@ -333,29 +312,40 @@ public class DetailPlaceActivity extends BaseActivity {
                         fab.setOnClickListener(new View.OnClickListener() {
                             @Override
                             public void onClick(View view) {
-                                Map<String, Object> placeToGo = new HashMap<>();
-                                if (currentUser.getPlaceToGo() != null && currentUser.getPlaceToGo().get("placeRef").toString().equals(placeRef)){
+
+                                PlaceToGo placeToGo = new PlaceToGo(mPlaceDetails.getAddress(),mPlaceDetails.getName(),placeRef);
+                                WhoComing whoComing = new WhoComing(currentUser.getUsername(),currentUser.getUid());
+
+                                if (currentUser.getPlaceToGo() != null && currentUser.getPlaceToGo().getPlaceRef().equals(placeRef)){
 
                                     PlaceHelper.deleteUserWhoComming(currentUser.getUid(),mPlaceDetails.getId());
                                     UserHelper.updatePlaceToGo(currentUser.getUid(),null);
 
                                     currentUser.setPlaceToGo(null);
+                                    Workmate tmp;
+                                    for (Workmate workmate : workmateList){
+                                        if (workmate.getUid().equals(currentUser.getUid())){
+                                            tmp = workmate;
+                                            workmateList.remove(tmp);
+                                            setUpRecyclerView(workmateList);
+                                            break;
+                                        }
+                                    }
 
                                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                                         fab.getDrawable().setTint(getResources().getColor(R.color.grey));
                                     }
                                     makeToast(getResources().getString(R.string.no_going_there));
 
-                                }else if (currentUser.getPlaceToGo() != null && !currentUser.getPlaceToGo().get("placeRef").toString().equals(placeRef)){
-                                    placeToGo.put("placeRef",placeRef);
-                                    placeToGo.put("placeName",mPlaceDetails.getName());
-                                    placeToGo.put("adresse", mPlaceDetails.getAddress());
+                                }else if (currentUser.getPlaceToGo() != null && !currentUser.getPlaceToGo().getPlaceRef().equals(placeRef)){
 
-                                    PlaceHelper.deleteUserWhoComming(currentUser.getUid(),currentUser.getPlaceToGo().get("placeRef").toString());
-                                    PlaceHelper.createWhoComing(mPlaceDetails.getId(),currentUser.getUid(),currentUser.getUsername());
+                                    PlaceHelper.deleteUserWhoComming(currentUser.getUid(),currentUser.getPlaceToGo().getPlaceRef());
+                                    PlaceHelper.createWhoComing(mPlaceDetails.getId(), whoComing);
                                     UserHelper.updatePlaceToGo(currentUser.getUid(),placeToGo);
 
                                     currentUser.setPlaceToGo(placeToGo);
+                                    workmateList.add(currentUser);
+                                    setUpRecyclerView(workmateList);
 
                                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                                         fab.getDrawable().setTint(getResources().getColor(R.color.green));
@@ -363,14 +353,13 @@ public class DetailPlaceActivity extends BaseActivity {
                                     makeToast(getResources().getString(R.string.nice_choice));
 
                                 }else{
-                                    placeToGo.put("placeRef",placeRef);
-                                    placeToGo.put("placeName",mPlaceDetails.getName());
-                                    placeToGo.put("adresse", mPlaceDetails.getAddress());
 
-                                    PlaceHelper.createWhoComing(mPlaceDetails.getId(), currentUser.getUid(), currentUser.getUsername());
+                                    PlaceHelper.createWhoComing(mPlaceDetails.getId(), whoComing);
                                     UserHelper.updatePlaceToGo(currentUser.getUid(),placeToGo);
 
                                     currentUser.setPlaceToGo(placeToGo);
+                                    workmateList.add(currentUser);
+                                    setUpRecyclerView(workmateList);
 
                                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                                         fab.getDrawable().setTint(getResources().getColor(R.color.green));

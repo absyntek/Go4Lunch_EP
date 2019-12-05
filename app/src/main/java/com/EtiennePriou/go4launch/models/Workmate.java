@@ -9,11 +9,11 @@ public class Workmate {
     private String username;
     @Nullable
     private String urlPicture;
-    private Map<String, Object> placeToGo;
+    private PlaceToGo placeToGo;
 
     public Workmate(){ }
 
-    public Workmate(String uid, String username, String urlPicture, Map<String, Object> placeToGo) {
+    public Workmate(String uid, String username, String urlPicture, PlaceToGo placeToGo) {
         this.uid = uid;
         this.username = username;
         this.urlPicture = urlPicture;
@@ -25,7 +25,7 @@ public class Workmate {
     public String getUsername() { return username; }
     @Nullable
     public String getUrlPicture() { return urlPicture; }
-    public Map<String, Object> getPlaceToGo() { return placeToGo; }
+    public PlaceToGo getPlaceToGo() { return placeToGo; }
 
     // --- SETTERS ---
 
@@ -33,7 +33,7 @@ public class Workmate {
         this.username = username;
     }
 
-    public void setPlaceToGo(Map<String, Object> placeToGo) {
+    public void setPlaceToGo(PlaceToGo placeToGo) {
         this.placeToGo = placeToGo;
     }
 }

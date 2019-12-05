@@ -65,6 +65,7 @@
         android:layout_height="wrap_content"
         android:layout_margin="@dimen/fab_margin"
         android:src="@drawable/fui_ic_check_circle_black_128dp"
+        android:tint="@color/grey"
         app:backgroundTint="#F3F3F3"
         app:layout_anchor="@id/app_bar"
         app:layout_anchorGravity="bottom|end" />

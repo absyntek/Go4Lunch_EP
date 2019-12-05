@@ -1,5 +1,6 @@
 package com.EtiennePriou.go4launch.services.firebase.helpers;
 
+import com.EtiennePriou.go4launch.models.WhoComing;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
@@ -40,11 +41,8 @@ public class PlaceHelper {
         return getNoteCollection(placeRef).document(uid).set(noteToCreate);
     }
 
-    public static Task<Void> createWhoComing(String placeRef, String uid, String username) {
-        Map<String, Object> toCreate = new HashMap<>();
-        toCreate.put("uid",uid);
-        toCreate.put("name", username);
-        return getWhoComingCollection(placeRef).document(uid).set(toCreate);
+    public static Task<Void> createWhoComing(String placeRef, WhoComing whoComing) {
+        return getWhoComingCollection(placeRef).document(whoComing.getUid()).set(whoComing);
     }
 
     // --- GET ---

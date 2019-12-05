@@ -6,7 +6,7 @@
     <string name="close">Fermer</string>
     <string name="connecting">Connection</string>
     <string name="error_unknown_error">erreur inconnu</string>
-    <string name="isJoining"> vien aussi à : </string>
+    <string name="isJoining">\ mange ici</string>
     <string name="menu_logout">Déconexion</string>
     <string name="menu_setting">Propriété</string>
     <string name="menu_your_launch">Votre sélèction</string>
@@ -26,14 +26,14 @@
     <string name="PermissionGarented">Permission accordé!</string>
     <string name="actually_no_one_is_comming_here">Il n\'y à perssonne pour le moment !</string>
     <string name="noplacefound">Pas de restaurants par ici</string>
-    <string name="isGoingTo">vien aussi</string>
+    <string name="isGoingTo">\ mange à : \</string>
     <string name="butYouAreTheOnlyOne">, mais vous êtes le seul à allez ici ;(</string>
     <string name="cancel">annuler</string>
     <string name="closeToday">Fermé pour la journée</string>
     <string name="close_for_rest_of">Fermé pour le reste de la journée.</string>
     <string name="close_open_at">Fermé. Ouvre à\ </string>
     <string name="closingSoon">Ferme Bientôt !</string>
-    <string name="didntChoose"> n\'a pas encore choisi</string>
+    <string name="didntChoose">\ n\'a pas encore choisi</string>
     <string name="dontForget">N\'oublie pas, tu mange à :</string>
     <string name="dont_know_open_time">nous n\'avons pas acces aux horaires</string>
     <string name="fetching_restaurant">Recherche des restaurant à proximité</string>
@@ -51,4 +51,5 @@
     <string name="user_name">" Nom d'utilisateur"</string>
     <string name="type_usr_name">Entrer votre nom d\'utilisateur pour valider</string>
     <string name="your_chatting_with">"Vous dialoguer avec "</string>
+    <string name="noChoosePlace">Vous n\'avez pas choisi de restaurant</string>
 </resources>

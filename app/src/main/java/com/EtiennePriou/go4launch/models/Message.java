@@ -9,7 +9,6 @@ public class Message {
     private String message;
     private Date dateCreated;
     private Workmate userSender;
-    private String urlImage;
 
     public Message() { }
 

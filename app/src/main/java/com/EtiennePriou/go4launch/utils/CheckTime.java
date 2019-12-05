@@ -1,7 +1,6 @@
 package com.EtiennePriou.go4launch.utils;
 
 import android.content.Context;
-import android.os.Parcel;
 
 import com.EtiennePriou.go4launch.R;
 import com.google.android.libraries.places.api.model.LocalTime;
@@ -18,7 +17,13 @@ import java.util.Map;
 
 public class CheckTime {
 
-    public static Map<String, Object> getStringTime (OpeningHours openingHours, Context context){
+    public CheckTime() {
+    }
+
+    private static int actualMinute;
+    private static int actualHour;
+
+    public static Map<String, Object> getStringTime(OpeningHours openingHours, Context context){
         List<Period> actualPeriod = new ArrayList<>();
         final Date date = new Date();
         String tosend;
@@ -28,30 +33,10 @@ public class CheckTime {
         SimpleDateFormat formatterMinutes = new SimpleDateFormat("mm", Locale.FRANCE);
 
         String actualDay = formatterDay.format(date).toUpperCase();
-        final int actualHour = Integer.parseInt(formatterHours.format(date));
-        final int actualMinute = Integer.parseInt(formatterMinutes.format(date));
+        actualHour = Integer.parseInt(formatterHours.format(date));
+        actualMinute = Integer.parseInt(formatterMinutes.format(date));
 
-        LocalTime localTime = new LocalTime() {
-            @Override
-            public int getHours() {
-                return actualHour;
-            }
-
-            @Override
-            public int getMinutes() {
-                return actualMinute;
-            }
-
-            @Override
-            public int describeContents() {
-                return 0;
-            }
-
-            @Override
-            public void writeToParcel(Parcel parcel, int i) {
-
-            }
-        };
+        LocalTime localTime = getLocalTime();
 
         for (Period period : openingHours.getPeriods()){
             if (period.getOpen().getDay().toString().equals(actualDay)){
@@ -60,24 +45,22 @@ public class CheckTime {
         }
 
         List<Map<String, Object>> maps = new ArrayList<>();
-        Map<String, Object> toReturn = new HashMap<>();
 
         if (!actualPeriod.isEmpty()){
             for (Period period : actualPeriod){
                 Map<String, Object> toCreate = new HashMap<>();
 
+                int tmp1 = period.getOpen().getTime().compareTo(localTime);
+                int tmp2 = period.getClose().getTime().compareTo(localTime);
+
                 if (period.getOpen().getTime().compareTo(localTime)<0 && period.getClose().getTime().compareTo(localTime)>0){
-                    tosend = context.getResources().getString(R.string.openUntil) + period.getOpen().getTime().getHours() + ":" + formatterMinutes.format(period.getOpen().getTime().getMinutes());
-                    toReturn.put("open", true);
-                    toReturn.put("string", tosend);
-                    return toReturn;
+                    tosend = context.getResources().getString(R.string.openUntil) + period.getOpen().getTime().getHours() + ":" + period.getOpen().getTime().getMinutes();
+                    return toReturnMap(tosend,true);
                 }
 
                 else if (period.getOpen().getTime().compareTo(localTime)<0 && period.getClose().getTime().compareTo(localTime)==0){
                     tosend = context.getResources().getString(R.string.closingSoon);
-                    toReturn.put("open", true);
-                    toReturn.put("string", tosend);
-                    return toReturn;
+                    return toReturnMap(tosend,true);
                 }
 
                 else if (period.getOpen().getTime().compareTo(localTime)>0 && period.getClose().getTime().compareTo(localTime)>0){
@@ -91,14 +74,10 @@ public class CheckTime {
             }
 
             if (maps.isEmpty()){
-                toReturn.put("open", false);
-                toReturn.put("string", context.getResources().getString(R.string.close_for_rest_of));
-                return toReturn;
+                return toReturnMap(context.getResources().getString(R.string.close_for_rest_of),false);
             }
             else if (maps.size() == 1){
-                toReturn.put("open", false);
-                toReturn.put("string", String.valueOf(maps.get(0).get("string")));
-                return toReturn;
+                return toReturnMap(String.valueOf(maps.get(0).get("string")),false);
             }else {
                 Map good = null;
                 for (Map map : maps){
@@ -107,15 +86,22 @@ public class CheckTime {
                         good = map;
                     }
                 }
-                toReturn.put("open", false);
-                toReturn.put("string", String.valueOf(good.get("string")));
-                return toReturn;
+                return toReturnMap(String.valueOf(good.get("string")), false);
             }
 
         }else {
-            toReturn.put("open", false);
-            toReturn.put("string", context.getResources().getString(R.string.closeToday));
-            return toReturn;
+            return toReturnMap(context.getResources().getString(R.string.closeToday),false);
         }
+    }
+
+    private static Map<String, Object> toReturnMap(String s, Boolean aBoolean){
+        Map<String, Object> toReturn = new HashMap<>();
+        toReturn.put("open", aBoolean);
+        toReturn.put("string",s);
+        return toReturn;
+    }
+
+    public static LocalTime getLocalTime(){
+        return LocalTime.newInstance(actualHour,actualMinute);
     }
 }

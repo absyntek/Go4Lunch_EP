@@ -1,8 +1,6 @@
 package com.EtiennePriou.go4launch.ui.chat;
 
-import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.widget.Toolbar;
-import androidx.lifecycle.ViewModelProviders;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -14,8 +12,6 @@ import android.widget.TextView;
 
 import com.EtiennePriou.go4launch.R;
 import com.EtiennePriou.go4launch.base.BaseActivity;
-import com.EtiennePriou.go4launch.di.DI;
-import com.EtiennePriou.go4launch.di.ViewModelFactory;
 import com.EtiennePriou.go4launch.models.Message;
 import com.EtiennePriou.go4launch.models.Workmate;
 import com.EtiennePriou.go4launch.services.firebase.helpers.MessageHelper;
@@ -24,8 +20,6 @@ import com.firebase.ui.firestore.FirestoreRecyclerOptions;
 
 
 public class ChatActivity extends BaseActivity implements MyChatRecyclerViewAdapter.Listener {
-
-    private ChatViewModel mChatViewModel;
 
     private MyChatRecyclerViewAdapter mRecyclerViewAdapter;
     private String currentChatToken;
@@ -58,7 +52,6 @@ public class ChatActivity extends BaseActivity implements MyChatRecyclerViewAdap
 
     @Override
     protected void withOnCreate() {
-        setUpViewModel();
         currentUser = mFireBaseApi.getActualUser();
         currentChatToken = getIntent().getStringExtra(getResources().getString(R.string.TOKEN));
         receiver = getIntent().getStringExtra(getResources().getString(R.string.RECEIVER));
@@ -66,11 +59,6 @@ public class ChatActivity extends BaseActivity implements MyChatRecyclerViewAdap
         tvTitleChat.setText(tmp);
         configureRecyclerView();
         setUpSendBtn();
-    }
-
-    private void setUpViewModel() {
-        ViewModelFactory viewModelFactory = DI.provideViewModelFactory();
-        mChatViewModel = ViewModelProviders.of(this, viewModelFactory).get(ChatViewModel.class);
     }
 
     private void setUpSendBtn(){

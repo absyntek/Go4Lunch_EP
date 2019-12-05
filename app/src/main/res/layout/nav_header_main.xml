@@ -25,7 +25,7 @@
         android:tint="#00FFFFFF"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:srcCompat="@mipmap/ic_launcher_round" />
+        app:srcCompat="@drawable/ic_anon_user_48dp" />
 
     <TextView
         android:id="@+id/tv_menu_name"

@@ -24,12 +24,12 @@ import com.google.firebase.firestore.QuerySnapshot;
 import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.messaging.RemoteMessage;
 
+import java.util.Date;
+
 public class NotificationsService extends FirebaseMessagingService {
 
-    private String placeRef;
-    private String placeName;
-    private String adresse;
-    private String uid;
+    private String placeRef, placeName, adresse, uid;
+    private Date mDate;
     private Workmate workmate;
     QuerySnapshot listName;
 
@@ -45,9 +45,11 @@ public class NotificationsService extends FirebaseMessagingService {
             public void onSuccess(DocumentSnapshot documentSnapshot) {
                 workmate = documentSnapshot.toObject(Workmate.class);
                 if (workmate.getPlaceToGo() !=null){
-                    placeRef = workmate.getPlaceToGo().get("placeRef").toString();
-                    adresse = workmate.getPlaceToGo().get("adresse").toString();
-                    placeName = workmate.getPlaceToGo().get("placeName").toString();
+                    placeRef = workmate.getPlaceToGo().getPlaceRef();
+                    adresse = workmate.getPlaceToGo().getAdresse();
+                    placeName = workmate.getPlaceToGo().getPlaceName();
+                    mDate = workmate.getPlaceToGo().getDateCreated();
+                    //TODO check date
                     getPlaceToGo(placeRef);
                 }
             }

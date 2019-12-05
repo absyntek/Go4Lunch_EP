@@ -1,5 +1,6 @@
 package com.EtiennePriou.go4launch.services.firebase.helpers;
 
+import com.EtiennePriou.go4launch.models.PlaceToGo;
 import com.EtiennePriou.go4launch.models.Workmate;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.firestore.CollectionReference;
@@ -42,8 +43,8 @@ public class UserHelper {
         return UserHelper.getUsersCollection().document(uid).update("username", username);
     }
 
-    public static Task<Void> updatePlaceToGo(String uid, Map<String, Object> placeRef) {
-        return UserHelper.getUsersCollection().document(uid).update("placeToGo", placeRef);
+    public static Task<Void> updatePlaceToGo(String uid, PlaceToGo placeToGo) {
+        return UserHelper.getUsersCollection().document(uid).update("placeToGo", placeToGo);
     }
 
     // --- DELETE ---

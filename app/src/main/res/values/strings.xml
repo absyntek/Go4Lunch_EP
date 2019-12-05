@@ -168,8 +168,8 @@
     <string name="fetching_restaurant">Fetching nearby restaurants ...</string>
     <string name="pleaseWait">Please wait...</string>
     <string name="dont_know_open_time">We don\'t know the opening time for this place</string>
-    <string name="isJoining">is joining!</string>
-    <string name="isGoingTo">is going to</string>
+    <string name="isJoining">\ is joining!</string>
+    <string name="isGoingTo">\ is going to :\ </string>
     <string name="didntChoose">didn\'t choose yet</string>
     <string name="butYouAreTheOnlyOne">, but you are the only one to eat there ;(</string>
     <string name="with">with :</string>
@@ -180,5 +180,6 @@
     <string name="type_usr_name">Type your user name for valid this action</string>
     <string name="RECEIVER" translatable="false">receiver</string>
     <string name="your_chatting_with">You\'re chatting with</string>
+    <string name="noChoosePlace">You did not choose a place</string>
 
 </resources>

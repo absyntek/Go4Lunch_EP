@@ -12,6 +12,7 @@ import com.EtiennePriou.go4launch.ui.details.DetailPlaceActivity;
 import com.EtiennePriou.go4launch.ui.fragments.MapFragment;
 import com.EtiennePriou.go4launch.ui.fragments.place_view.PlaceFragment;
 import com.EtiennePriou.go4launch.ui.fragments.workmates_list.WorkmateFragment;
+import com.EtiennePriou.go4launch.utils.CheckDate;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.RequestOptions;
 import com.google.android.gms.common.api.Status;
@@ -134,7 +135,7 @@ public class MainActivity extends BaseActivity implements NavigationView.OnNavig
                 @Override
                 public void onSuccess(DocumentSnapshot documentSnapshot) {
                     mFireBaseApi.setActualUser(documentSnapshot.toObject(Workmate.class));
-                    setupMenuInfo(currentUser);
+                    setupMenuInfo();
                 }
             });
         }
@@ -146,13 +147,15 @@ public class MainActivity extends BaseActivity implements NavigationView.OnNavig
         mMainViewModel = ViewModelProviders.of(this, viewModelFactory).get(MainViewModel.class);
     }
 
-    private void setupMenuInfo(FirebaseUser user){
-        mtv_Menu_Mail.setText(user.getEmail());
+    private void setupMenuInfo(){
+        mtv_Menu_Mail.setText(mFireBaseApi.getCurrentUser().getEmail());
         mtv_Menu_Name.setText(mFireBaseApi.getActualUser().getUsername());
-        Glide.with(imgMenuProfile.getContext())
-                .load(user.getPhotoUrl())
-                .apply(RequestOptions.circleCropTransform())
-                .into(imgMenuProfile);
+        if (mFireBaseApi.getCurrentUser().getPhotoUrl() != null){
+            Glide.with(imgMenuProfile.getContext())
+                    .load(mFireBaseApi.getCurrentUser().getPhotoUrl())
+                    .apply(RequestOptions.circleCropTransform())
+                    .into(imgMenuProfile);
+        }
     }
 
     @Override
@@ -233,6 +236,14 @@ public class MainActivity extends BaseActivity implements NavigationView.OnNavig
     }
 
     @Override
+    protected void onPostResume() {
+        super.onPostResume();
+        if (mFireBaseApi.getActualUser() != null){
+            setupMenuInfo();
+        }
+    }
+
+    @Override
     public boolean onNavigationItemSelected(@NonNull MenuItem item) {
         // Handle navigation view item clicks here.
         switch (item.getItemId()){
@@ -241,13 +252,13 @@ public class MainActivity extends BaseActivity implements NavigationView.OnNavig
                     @Override
                     public void onSuccess(DocumentSnapshot documentSnapshot) {
                         Workmate user = documentSnapshot.toObject(Workmate.class);
-                        assert user != null;
-                        if (user.getPlaceToGo() != null){//TODO faire quelque chose si null
+
+                        if (user.getPlaceToGo() != null && !CheckDate.isDatePast(user.getPlaceToGo().getDateCreated())){
                             Intent intent = new Intent(getApplicationContext(), DetailPlaceActivity.class);
-                            intent.putExtra(getString(R.string.PLACEREFERENCE), Objects.requireNonNull(Objects.requireNonNull(user.getPlaceToGo().get("placeRef")).toString()));
+                            intent.putExtra(getString(R.string.PLACEREFERENCE), Objects.requireNonNull(Objects.requireNonNull(user.getPlaceToGo().getPlaceRef())));
                             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                             getApplication().startActivity(intent);
-                        }
+                        }else Toast.makeText(mContext, getString(R.string.noChoosePlace), Toast.LENGTH_SHORT).show();
                     }
                 });
                 break;
