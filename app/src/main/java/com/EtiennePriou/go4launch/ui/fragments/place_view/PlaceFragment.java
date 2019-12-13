@@ -29,4 +29,10 @@ public class PlaceFragment extends BaseFragment {
         List<Place> nearbyPlaceModelList = mPlacesApi.getPlaces();
         if (nearbyPlaceModelList != null) mRecyclerView.setAdapter(new MyPlaceRecyclerViewAdapter(nearbyPlaceModelList,mMainViewModel));
     }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        initList();
+    }
 }

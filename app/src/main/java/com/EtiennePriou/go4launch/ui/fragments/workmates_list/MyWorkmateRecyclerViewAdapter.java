@@ -12,26 +12,31 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.EtiennePriou.go4launch.R;
+import com.EtiennePriou.go4launch.di.DI;
 import com.EtiennePriou.go4launch.models.Workmate;
+import com.EtiennePriou.go4launch.services.firebase.FireBaseApi;
 import com.EtiennePriou.go4launch.ui.chat.ChatActivity;
 import com.EtiennePriou.go4launch.ui.details.DetailPlaceActivity;
 import com.EtiennePriou.go4launch.utils.CheckDate;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.RequestOptions;
+import com.firebase.ui.firestore.FirestoreRecyclerAdapter;
+import com.firebase.ui.firestore.FirestoreRecyclerOptions;
 import com.google.android.gms.location.DetectedActivity;
 import com.google.firebase.auth.FirebaseAuth;
 
 import java.util.List;
 import java.util.Objects;
 
-public class MyWorkmateRecyclerViewAdapter extends RecyclerView.Adapter<MyWorkmateRecyclerViewAdapter.ViewHolder>{
+public class MyWorkmateRecyclerViewAdapter extends FirestoreRecyclerAdapter<Workmate, MyWorkmateRecyclerViewAdapter.ViewHolder> {
 
-    private List<Workmate> mWorkmates;
     private int wichActivity;
+    private FireBaseApi mFireBaseApi;
 
-    public MyWorkmateRecyclerViewAdapter(List<Workmate> workmates, int wichActi) {
-        this.mWorkmates = workmates;
+    public MyWorkmateRecyclerViewAdapter(@NonNull FirestoreRecyclerOptions<Workmate> options, int wichActi) {
+        super(options);
         this.wichActivity = wichActi;
+        mFireBaseApi = DI.getServiceFireBase();
     }
 
     @NonNull
@@ -43,16 +48,29 @@ public class MyWorkmateRecyclerViewAdapter extends RecyclerView.Adapter<MyWorkma
     }
 
     @Override
-    public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
+    protected void onBindViewHolder(@NonNull ViewHolder holder, int position, @NonNull Workmate model) {
 
-        final Workmate workmate = mWorkmates.get(position);
+        final Workmate workmate = model;
 
-        if (wichActivity == 0){
+        if (wichActivity == 0)
+        {
+            if (workmate.getUid().equals(mFireBaseApi.getCurrentUser().getUid()))
+            {
+                holder.btnChat.setVisibility(View.GONE);
+            }
             String isJoin = workmate.getUsername()+ holder.mContext.getString(R.string.isJoining);
             holder.workmateName.setText(isJoin);
-        }else{
+        }else {
+            if (workmate.getUid().equals(mFireBaseApi.getCurrentUser().getUid()))
+            {
+                holder.itemView.setVisibility(View.GONE);
+                holder.itemView.setLayoutParams(new RecyclerView.LayoutParams(0, 0));
+            }else {
+                holder.itemView.setVisibility(View.VISIBLE);//TODO how to reject this
+            }
             String whereIsGoing;
-            if (workmate.getPlaceToGo() != null && !CheckDate.isDatePast(workmate.getPlaceToGo().getDateCreated())){
+            if (workmate.getPlaceToGo() != null && !CheckDate.isDatePast(workmate.getPlaceToGo().getDateCreated()))
+            {
                 whereIsGoing = workmate.getUsername() + holder.mContext.getString(R.string.isGoingTo) + workmate.getPlaceToGo().getPlaceName();
                 holder.itemView.setOnClickListener(new View.OnClickListener() {
                     @Override
@@ -68,7 +86,6 @@ public class MyWorkmateRecyclerViewAdapter extends RecyclerView.Adapter<MyWorkma
             holder.workmateName.setText(whereIsGoing);
 
         }
-
 
         if (workmate.getUrlPicture() != null)
         {
@@ -97,16 +114,12 @@ public class MyWorkmateRecyclerViewAdapter extends RecyclerView.Adapter<MyWorkma
         });
     }
 
-    @Override
-    public int getItemCount() {
-        return mWorkmates.size();
-    }
-
     class ViewHolder extends RecyclerView.ViewHolder{
 
         TextView workmateName;
         ImageView workmateImage;
         ImageView btnChat;
+        View view;
 
         Context mContext;
 

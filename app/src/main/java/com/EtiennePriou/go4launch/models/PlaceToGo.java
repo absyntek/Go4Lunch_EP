@@ -5,8 +5,8 @@ import com.google.firebase.firestore.ServerTimestamp;
 import java.util.Date;
 
 public class PlaceToGo {
-    String adresse, placeName, placeRef;
-    Date dateCreated;
+    private String adresse, placeName, placeRef;
+    private Date dateCreated;
 
     public PlaceToGo() {
     }
@@ -15,6 +15,13 @@ public class PlaceToGo {
         this.adresse = adresse;
         this.placeName = placeName;
         this.placeRef = placeRef;
+    }
+
+    public PlaceToGo(String adresse, String placeName, String placeRef, Date dateCreated) {
+        this.adresse = adresse;
+        this.placeName = placeName;
+        this.placeRef = placeRef;
+        this.dateCreated = dateCreated;
     }
 
     //GETTERS

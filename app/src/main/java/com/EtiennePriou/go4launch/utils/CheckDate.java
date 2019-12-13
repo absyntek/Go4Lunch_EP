@@ -1,8 +1,6 @@
 package com.EtiennePriou.go4launch.utils;
 
 import java.text.SimpleDateFormat;
-import java.time.LocalDate;
-import java.time.ZoneId;
 import java.util.Date;
 import java.util.Locale;
 
@@ -11,22 +9,13 @@ public class CheckDate {
 
         Date actualDate = new Date();
 
-        String yearToCheck, yearActual, monthToCheck, monthActual, dayToCheck, dayActual;
+        String strToCheck, strActual;
 
-        SimpleDateFormat yearFormat = new SimpleDateFormat("yyyy", Locale.FRANCE);
-        SimpleDateFormat monthFormat = new SimpleDateFormat("MM", Locale.FRANCE);
-        SimpleDateFormat dayFormat = new SimpleDateFormat("dd", Locale.FRANCE);
+        SimpleDateFormat format = new SimpleDateFormat("dd.MM.yyyy", Locale.FRANCE);
 
-        yearToCheck = yearFormat.format(dateToCheck);
-        yearActual = yearFormat.format(actualDate);
+        strToCheck = format.format(dateToCheck);
+        strActual = format.format(actualDate);
 
-        monthToCheck = monthFormat.format(dateToCheck);
-        monthActual = monthFormat.format(actualDate);
-
-        dayToCheck = dayFormat.format(dateToCheck);
-        dayActual = dayFormat.format(actualDate);
-
-
-        return !(yearActual.equals(yearToCheck) && monthActual.equals(monthToCheck) && dayActual.equals(dayToCheck));
+        return !(strActual.equals(strToCheck));
     }
 }

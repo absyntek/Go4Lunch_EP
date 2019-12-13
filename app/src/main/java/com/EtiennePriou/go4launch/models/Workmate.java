@@ -2,7 +2,9 @@ package com.EtiennePriou.go4launch.models;
 
 import androidx.annotation.Nullable;
 
-import java.util.Map;
+import com.google.firebase.firestore.ServerTimestamp;
+
+import java.util.Date;
 
 public class Workmate {
     private String uid;
@@ -10,6 +12,7 @@ public class Workmate {
     @Nullable
     private String urlPicture;
     private PlaceToGo placeToGo;
+    private Date dateCreated;
 
     public Workmate(){ }
 
@@ -26,6 +29,10 @@ public class Workmate {
     @Nullable
     public String getUrlPicture() { return urlPicture; }
     public PlaceToGo getPlaceToGo() { return placeToGo; }
+    @ServerTimestamp
+    public Date getDateCreated() {
+        return dateCreated;
+    }
 
     // --- SETTERS ---
 
@@ -35,5 +42,9 @@ public class Workmate {
 
     public void setPlaceToGo(PlaceToGo placeToGo) {
         this.placeToGo = placeToGo;
+    }
+
+    public void setDateCreated(Date dateCreated) {
+        this.dateCreated = dateCreated;
     }
 }

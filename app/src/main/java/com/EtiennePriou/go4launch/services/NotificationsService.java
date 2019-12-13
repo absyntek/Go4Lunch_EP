@@ -17,6 +17,7 @@ import com.EtiennePriou.go4launch.models.Workmate;
 import com.EtiennePriou.go4launch.services.firebase.helpers.PlaceHelper;
 import com.EtiennePriou.go4launch.services.firebase.helpers.UserHelper;
 import com.EtiennePriou.go4launch.ui.details.DetailPlaceActivity;
+import com.EtiennePriou.go4launch.utils.CheckDate;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentSnapshot;
@@ -24,14 +25,16 @@ import com.google.firebase.firestore.QuerySnapshot;
 import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.messaging.RemoteMessage;
 
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 public class NotificationsService extends FirebaseMessagingService {
 
     private String placeRef, placeName, adresse, uid;
     private Date mDate;
     private Workmate workmate;
-    QuerySnapshot listName;
+    List<Workmate> listName;
 
     @Override
     public void onMessageReceived(@NonNull RemoteMessage remoteMessage) {
@@ -44,12 +47,11 @@ public class NotificationsService extends FirebaseMessagingService {
             @Override
             public void onSuccess(DocumentSnapshot documentSnapshot) {
                 workmate = documentSnapshot.toObject(Workmate.class);
-                if (workmate.getPlaceToGo() !=null){
+                if (workmate.getPlaceToGo() !=null && !CheckDate.isDatePast(workmate.getPlaceToGo().getDateCreated())){
                     placeRef = workmate.getPlaceToGo().getPlaceRef();
                     adresse = workmate.getPlaceToGo().getAdresse();
                     placeName = workmate.getPlaceToGo().getPlaceName();
                     mDate = workmate.getPlaceToGo().getDateCreated();
-                    //TODO check date
                     getPlaceToGo(placeRef);
                 }
             }
@@ -60,7 +62,13 @@ public class NotificationsService extends FirebaseMessagingService {
         PlaceHelper.getWhoComing(placeRef).addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
             @Override
             public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
-                listName = queryDocumentSnapshots;
+                List<Workmate> tmp = queryDocumentSnapshots.toObjects(Workmate.class);
+                for (Workmate workmate : tmp){
+                    if (!CheckDate.isDatePast(workmate.getPlaceToGo().getDateCreated())){
+                        tmp.add(workmate);
+                    }
+                }
+                listName = tmp;
                 makeMessage();
             }
         });
@@ -72,9 +80,9 @@ public class NotificationsService extends FirebaseMessagingService {
             nameMessage.append(Resources.getSystem().getString(R.string.butYouAreTheOnlyOne));
         }else{
             nameMessage.append(getString(R.string.with));
-            for (DocumentSnapshot data : listName){
-                if (!data.get("uid").toString().equals(uid))
-                nameMessage.append("- " + data.get("name")+"\n");
+            for (Workmate data : listName){
+                if (!data.getUid().equals(uid))
+                nameMessage.append("- " + data.getUsername()+"\n");
             }
         }
         String messageBody = getString(R.string.dontForget) + placeName + nameMessage + "\n" + adresse;

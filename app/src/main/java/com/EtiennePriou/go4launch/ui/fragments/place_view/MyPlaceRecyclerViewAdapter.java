@@ -6,7 +6,6 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import android.content.Context;
 import android.content.Intent;
-import android.graphics.Bitmap;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -23,6 +22,7 @@ import com.EtiennePriou.go4launch.ui.MainViewModel;
 import com.EtiennePriou.go4launch.ui.details.DetailPlaceActivity;
 import com.EtiennePriou.go4launch.utils.CheckDate;
 import com.EtiennePriou.go4launch.utils.CheckTime;
+import com.EtiennePriou.go4launch.utils.DistanceBeetwin;
 import com.EtiennePriou.go4launch.utils.NoteCalcul;
 import com.bumptech.glide.Glide;
 import com.google.android.gms.tasks.OnSuccessListener;
@@ -66,16 +66,17 @@ public class MyPlaceRecyclerViewAdapter extends RecyclerView.Adapter<MyPlaceRecy
 
         // -- load image --
         if (placeModel.getPhotoMetadatas() != null){
-            DetailHelper.getPhoto(placeModel,mPlacesApi.getPlacesClient()).addOnSuccessListener(new OnSuccessListener<FetchPhotoResponse>() {
-                @Override
-                public void onSuccess(FetchPhotoResponse fetchPhotoResponse) {
-                    Glide.with(holder.imgPlaceListe).load(fetchPhotoResponse.getBitmap()).into(holder.imgPlaceListe);
-                }
-            });
+                DetailHelper.getPhoto(placeModel,mPlacesApi.getPlacesClient()).addOnSuccessListener(new OnSuccessListener<FetchPhotoResponse>() {
+                    @Override
+                    public void onSuccess(FetchPhotoResponse fetchPhotoResponse) {
+                        Glide.with(holder.imgPlaceListe).load(fetchPhotoResponse.getBitmap()).into(holder.imgPlaceListe);
+                    }
+                });
         }
 
         // -- Distance between points --
-        holder.mtvDistance.setText(mMainViewModel.getDistanceBetween(Objects.requireNonNull(placeModel.getLatLng())));
+        String s = DistanceBeetwin.calculDistance(placeModel.getLatLng(),mMainViewModel.getLocation());
+        holder.mtvDistance.setText(s);
 
         // -- check opening time --
         DetailHelper.getHours(placeModel.getId(),mPlacesApi.getPlacesClient()).addOnSuccessListener(new OnSuccessListener<FetchPlaceResponse>() {

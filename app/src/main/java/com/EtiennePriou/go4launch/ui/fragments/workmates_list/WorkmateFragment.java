@@ -2,13 +2,16 @@ package com.EtiennePriou.go4launch.ui.fragments.workmates_list;
 
 import androidx.annotation.Nullable;
 import androidx.lifecycle.Observer;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.EtiennePriou.go4launch.R;
 import com.EtiennePriou.go4launch.base.BaseFragment;
 import com.EtiennePriou.go4launch.models.Workmate;
 import com.EtiennePriou.go4launch.services.firebase.helpers.UserHelper;
 import com.EtiennePriou.go4launch.ui.MainViewModel;
+import com.firebase.ui.firestore.FirestoreRecyclerOptions;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QuerySnapshot;
 
 import java.util.ArrayList;
@@ -18,7 +21,7 @@ import java.util.List;
 public class WorkmateFragment extends BaseFragment {
 
     private static MainViewModel mMainViewModel;
-    private List<Workmate> mWorkmates;
+    private MyWorkmateRecyclerViewAdapter mAdapter;
 
     public WorkmateFragment() { }
 
@@ -33,20 +36,8 @@ public class WorkmateFragment extends BaseFragment {
 
     @Override
     protected void initList() {
-        mWorkmates = new ArrayList<>();
-        if (mFireBaseApi.getWorkmatesList() == null){
-            UserHelper.getUserList().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
-                @Override
-                public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
-                    mFireBaseApi.setWorkmatesList(queryDocumentSnapshots.toObjects(Workmate.class));
-                    observeSearch();
-                    setAdapter(mFireBaseApi.getWorkmatesListNoMe());
-                }
-            });
-        }else {
-            observeSearch();
-            setAdapter(mFireBaseApi.getWorkmatesListNoMe());
-        }
+        observeSearch();
+        setAdapter(UserHelper.getUsers());
     }
 
     private void observeSearch() {
@@ -54,14 +45,12 @@ public class WorkmateFragment extends BaseFragment {
         final Observer<String> searchObserver = new Observer<String>() {
             @Override
             public void onChanged(@Nullable final String search) {
-                mWorkmates.clear();
                 if (search != null || !search.isEmpty()){
-                    for (Workmate workmate : mFireBaseApi.getWorkmatesListNoMe()){
-                        if (workmate.getUsername().contains(search)){
-                            mWorkmates.add(workmate);
-                        }
-                    }
-                    setAdapter(mWorkmates);
+                    setAdapter(UserHelper.getUsersSearch(search));
+                    mAdapter.startListening();
+                }else {
+                    setAdapter(UserHelper.getUsers());
+                    mAdapter.startListening();
                 }
             }
         };
@@ -70,10 +59,39 @@ public class WorkmateFragment extends BaseFragment {
         mMainViewModel.getWorkmateSearch().observe(this, searchObserver);
     }
 
-    private void setAdapter(List<Workmate> workmateList){ mRecyclerView.setAdapter(new MyWorkmateRecyclerViewAdapter(workmateList,1)); }
+    private void setAdapter(Query query){
+        this.mAdapter = new MyWorkmateRecyclerViewAdapter(generateOptionsForAdapter(query),1);
+        mAdapter.registerAdapterDataObserver(new RecyclerView.AdapterDataObserver() {
+            @Override
+            public void onChanged() {
+                mRecyclerView.smoothScrollToPosition(mAdapter.getItemCount());
+            }
+        });
+        mRecyclerView.setAdapter(this.mAdapter);
+    }
 
     @Override
     public void onDetach() {
         super.onDetach();
+    }
+
+    //Create options for RecyclerView from a Query
+    private FirestoreRecyclerOptions<Workmate> generateOptionsForAdapter(Query query){
+        return new FirestoreRecyclerOptions
+                .Builder<Workmate>()
+                .setQuery(query,Workmate.class)
+                .build();
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        mAdapter.startListening();
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        mAdapter.stopListening();
     }
 }

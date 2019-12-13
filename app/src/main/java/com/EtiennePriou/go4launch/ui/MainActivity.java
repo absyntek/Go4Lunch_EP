@@ -69,34 +69,7 @@ public class MainActivity extends BaseActivity implements NavigationView.OnNavig
     private TextView mtv_Menu_Name;
     private ImageView imgMenuProfile;
     private MenuItem itemSearchPlace, itemSearchPlaceW;
-
-    private BottomNavigationView.OnNavigationItemSelectedListener mOnNavigationItemSelectedListener
-            = new BottomNavigationView.OnNavigationItemSelectedListener() {
-        @Override
-        public boolean onNavigationItemSelected(@NonNull MenuItem item) {
-            switch (item.getItemId()) {
-                case R.id.navigation_map:
-                    itemSearchPlace.setVisible(true);
-                    itemSearchPlaceW.setVisible(false);
-                    mMainViewModel.setWichFrag(1);
-                    showFragment(1);
-                    return true;
-                case R.id.navigation_list_view:
-                    itemSearchPlace.setVisible(true);
-                    itemSearchPlaceW.setVisible(false);
-                    mMainViewModel.setWichFrag(2);
-                    showFragment(2);
-                    return true;
-                case R.id.navigation_workmates:
-                    itemSearchPlace.setVisible(false);
-                    itemSearchPlaceW.setVisible(true);
-                    mMainViewModel.setWichFrag(3);
-                    showFragment(3);
-                    return true;
-            }
-            return false;
-        }
-    };
+    private BottomNavigationView bottomNavigationView;
 
     @Override
     public int getLayoutContentViewID() { return R.layout.activity_main; }
@@ -104,8 +77,7 @@ public class MainActivity extends BaseActivity implements NavigationView.OnNavig
     @Override
     protected void setupUi(){
         NavigationView navigationView = findViewById(R.id.nav_view);
-        BottomNavigationView bottomNavigationView = findViewById(R.id.bottom_nav_view);
-        bottomNavigationView.setOnNavigationItemSelectedListener(mOnNavigationItemSelectedListener);
+        bottomNavigationView = findViewById(R.id.bottom_nav_view);
         navigationView.setNavigationItemSelectedListener(this);
 
         Toolbar toolbar = findViewById(R.id.toolbar);
@@ -126,6 +98,7 @@ public class MainActivity extends BaseActivity implements NavigationView.OnNavig
     @Override
     protected void withOnCreate() {
         configureViewModel();
+        setupBottomNavigation();
         FirebaseAuth auth = FirebaseAuth.getInstance();
         final FirebaseUser currentUser = auth.getCurrentUser();
         Places.initialize(this.getApplicationContext(), BuildConfig.PlaceApiKey);
@@ -147,9 +120,61 @@ public class MainActivity extends BaseActivity implements NavigationView.OnNavig
         mMainViewModel = ViewModelProviders.of(this, viewModelFactory).get(MainViewModel.class);
     }
 
+    private void setupBottomNavigation (){
+        bottomNavigationView.setOnNavigationItemSelectedListener(new BottomNavigationView.OnNavigationItemSelectedListener() {
+            @Override
+            public boolean onNavigationItemSelected(@NonNull MenuItem menuItem) {
+                switch (menuItem.getItemId()) {
+                    case R.id.navigation_map:
+                        changeSearchVisibility(true);
+                        mMainViewModel.setWichFrag(1);
+                        showFragment(1);
+                        return true;
+                    case R.id.navigation_list_view:
+                        changeSearchVisibility(true);
+                        mMainViewModel.setWichFrag(2);
+                        showFragment(2);
+                        return true;
+                    case R.id.navigation_workmates:
+                        changeSearchVisibility(false);
+                        mMainViewModel.setWichFrag(3);
+                        showFragment(3);
+                        return true;
+                }
+                return false;
+            }
+        });
+    }
+    private void changeSearchVisibility (Boolean aBoolean){
+        itemSearchPlace.setVisible(aBoolean);
+        itemSearchPlaceW.setVisible(!aBoolean);
+    }
+    private void showFragment(int wichFrag) {
+        Fragment fragment;
+        switch (wichFrag) {
+            case 2 :
+                fragment = PlaceFragment.newInstance(mMainViewModel);
+                break;
+            case 3 :
+                fragment = WorkmateFragment.newInstance(mMainViewModel);
+                break;
+            default:
+                fragment = MapFragment.newInstance(mMainViewModel);
+                break;
+        }
+        FragmentManager fragmentManager = getSupportFragmentManager();
+        fragmentManager.beginTransaction()
+                .replace(R.id.container, fragment)
+                .commit();
+    }
+
     private void setupMenuInfo(){
         mtv_Menu_Mail.setText(mFireBaseApi.getCurrentUser().getEmail());
-        mtv_Menu_Name.setText(mFireBaseApi.getActualUser().getUsername());
+        if (mFireBaseApi.getActualUser() == null){
+            mtv_Menu_Mail.setText(mFireBaseApi.getCurrentUser().getDisplayName());
+        }else {
+            mtv_Menu_Name.setText(mFireBaseApi.getActualUser().getUsername());
+        }
         if (mFireBaseApi.getCurrentUser().getPhotoUrl() != null){
             Glide.with(imgMenuProfile.getContext())
                     .load(mFireBaseApi.getCurrentUser().getPhotoUrl())
@@ -230,7 +255,9 @@ public class MainActivity extends BaseActivity implements NavigationView.OnNavig
         DrawerLayout drawer = findViewById(R.id.drawer_layout);
         if (drawer.isDrawerOpen(GravityCompat.START)) {
             drawer.closeDrawer(GravityCompat.START);
-        } else {
+        } else if (mMainViewModel.getWichFrag() == 2 || mMainViewModel.getWichFrag() == 3){
+            showFragment(1);
+        }else {
             super.onBackPressed();
         }
     }
@@ -278,24 +305,5 @@ public class MainActivity extends BaseActivity implements NavigationView.OnNavig
         drawer.closeDrawer(GravityCompat.START);
         return true;
 
-    }
-
-    private void showFragment(int wichFrag) {
-        Fragment fragment;
-        switch (wichFrag) {
-            case 2 :
-                fragment = PlaceFragment.newInstance(mMainViewModel);
-                break;
-            case 3 :
-                fragment = WorkmateFragment.newInstance(mMainViewModel);
-                break;
-            default:
-                fragment = MapFragment.newInstance(mMainViewModel);
-                break;
-        }
-        FragmentManager fragmentManager = getSupportFragmentManager();
-        fragmentManager.beginTransaction()
-                .replace(R.id.container, fragment)
-                .commit();
     }
 }

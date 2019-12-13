@@ -6,8 +6,19 @@ import java.util.Date;
 
 public class Message {
 
+    /**
+     *  Message to show
+     **/
     private String message;
+
+    /**
+     * Server creation timestamp
+     **/
     private Date dateCreated;
+
+    /**
+     * Workmate model who send this message
+     */
     private Workmate userSender;
 
     public Message() { }

@@ -8,10 +8,10 @@
         android:layout_height="wrap_content"
         android:layout_margin="8dp"
         style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-        android:hint="@string/">
+        android:hint="@string/type_usr_name">
 
         <com.google.android.material.textfield.TextInputEditText
-            android:id="@+id/tvUserNameToUpDate"
+            android:id="@+id/tvUserNameTodelete"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"/>
 

@@ -42,24 +42,7 @@ public class MainViewModel extends ViewModel {
         mLocation = location;
     }
 
-    public String getDistanceBetween(LatLng point) {
-
-        Location endPoint = new Location("locationA");
-        endPoint.setLatitude(point.latitude);
-        endPoint.setLongitude(point.longitude);
-        if (mLocation != null){
-            double distanceTo = mLocation.distanceTo(endPoint);
-            String distanceToStr;
-            if (distanceTo >= 1000){
-                distanceTo = distanceTo/1000;
-                DecimalFormat  df = new DecimalFormat("#.#");
-                df.setRoundingMode(RoundingMode.HALF_UP);
-                distanceToStr = df.format(distanceTo) + "Km";
-            }else {
-                DecimalFormat  df = new DecimalFormat("#");
-                df.setRoundingMode(RoundingMode.HALF_UP);
-                distanceToStr = df.format(distanceTo) + "m"; }
-            return distanceToStr;
-        }else return "---";
+    public Location getLocation() {
+        return mLocation;
     }
 }

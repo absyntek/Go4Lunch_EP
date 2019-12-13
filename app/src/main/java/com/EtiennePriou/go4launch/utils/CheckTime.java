@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
+
 public class CheckTime {
 
     public CheckTime() {
@@ -25,18 +26,19 @@ public class CheckTime {
 
     public static Map<String, Object> getStringTime(OpeningHours openingHours, Context context){
         List<Period> actualPeriod = new ArrayList<>();
-        final Date date = new Date();
+        final Date date = getDate();
         String tosend;
 
         SimpleDateFormat formatterDay = new SimpleDateFormat("EEEE", Locale.ENGLISH);
         SimpleDateFormat formatterHours = new SimpleDateFormat("H", Locale.FRANCE);
         SimpleDateFormat formatterMinutes = new SimpleDateFormat("mm", Locale.FRANCE);
 
+
         String actualDay = formatterDay.format(date).toUpperCase();
         actualHour = Integer.parseInt(formatterHours.format(date));
         actualMinute = Integer.parseInt(formatterMinutes.format(date));
 
-        LocalTime localTime = getLocalTime();
+        LocalTime localTime = LocalTime.newInstance(actualHour,actualMinute);
 
         for (Period period : openingHours.getPeriods()){
             if (period.getOpen().getDay().toString().equals(actualDay)){
@@ -50,21 +52,23 @@ public class CheckTime {
             for (Period period : actualPeriod){
                 Map<String, Object> toCreate = new HashMap<>();
 
-                int tmp1 = period.getOpen().getTime().compareTo(localTime);
-                int tmp2 = period.getClose().getTime().compareTo(localTime);
+                int tmp = period.getClose().getTime().compareTo(localTime);
 
-                if (period.getOpen().getTime().compareTo(localTime)<0 && period.getClose().getTime().compareTo(localTime)>0){
-                    tosend = context.getResources().getString(R.string.openUntil) + period.getOpen().getTime().getHours() + ":" + period.getOpen().getTime().getMinutes();
-                    return toReturnMap(tosend,true);
-                }
-
-                else if (period.getOpen().getTime().compareTo(localTime)<0 && period.getClose().getTime().compareTo(localTime)==0){
+                if (period.getOpen().getTime().compareTo(localTime)<0 && period.getClose().getTime().compareTo(localTime)==1)
+                {
                     tosend = context.getResources().getString(R.string.closingSoon);
                     return toReturnMap(tosend,true);
                 }
-
-                else if (period.getOpen().getTime().compareTo(localTime)>0 && period.getClose().getTime().compareTo(localTime)>0){
-
+                else if (period.getOpen().getTime().compareTo(localTime)<0 && period.getClose().getTime().compareTo(localTime)>0)
+                {
+                    tosend = context.getResources().getString(R.string.openUntil) + period.getOpen().getTime().getHours() + ":" + formatterMinutes.format(period.getOpen().getTime().getMinutes());
+                    Map<String, Object> toReturn = new HashMap<>();
+                    toReturn.put("open", true);
+                    toReturn.put("string",tosend);
+                    return toReturnMap(tosend,true);
+                }
+                else if (period.getOpen().getTime().compareTo(localTime)>0 && period.getClose().getTime().compareTo(localTime)>0)
+                {
                     int tmpScore = period.getOpen().getTime().compareTo(localTime) + period.getClose().getTime().compareTo(localTime);
                     tosend = context.getResources().getString(R.string.close_open_at) + period.getOpen().getTime().getHours() + ":" + formatterMinutes.format(period.getOpen().getTime().getMinutes());
                     toCreate.put("score", tmpScore);
@@ -94,14 +98,15 @@ public class CheckTime {
         }
     }
 
-    private static Map<String, Object> toReturnMap(String s, Boolean aBoolean){
+    public static Map<String, Object> toReturnMap(String s, Boolean aBoolean){
         Map<String, Object> toReturn = new HashMap<>();
         toReturn.put("open", aBoolean);
         toReturn.put("string",s);
         return toReturn;
     }
 
-    public static LocalTime getLocalTime(){
-        return LocalTime.newInstance(actualHour,actualMinute);
+
+    public static Date getDate(){
+        return new Date();
     }
 }

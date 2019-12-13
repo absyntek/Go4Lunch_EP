@@ -19,16 +19,27 @@ public class MessageHelper {
         return FirebaseFirestore.getInstance().collection(COLLECTION_NAME);
     }
 
-    // --- GET ---
+    // --- GETTERS ---
 
+    /**
+     * query all messages from specific token
+     * @param token
+     * @return
+     */
     public static Query getAllMessageForChat(String token){
         return getChatCollection()
                 .document(token)
                 .collection(SUBCOLLECTION_NAME)
-                .orderBy("dateCreated", Query.Direction.ASCENDING)
-                .limit(50);
+                .orderBy("dateCreated", Query.Direction.ASCENDING);
     }
 
+    /**
+     * send new message to Firestore
+     * @param textMessage
+     * @param token
+     * @param userSender
+     * @return
+     */
     public static Task<DocumentReference> createMessageForChat(String textMessage, String token, Workmate userSender){
 
         Message message = new Message(textMessage, userSender);

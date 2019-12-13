@@ -18,6 +18,8 @@ import com.EtiennePriou.go4launch.services.firebase.helpers.MessageHelper;
 import com.bumptech.glide.Glide;
 import com.firebase.ui.firestore.FirestoreRecyclerOptions;
 
+import java.util.Objects;
+
 
 public class ChatActivity extends BaseActivity implements MyChatRecyclerViewAdapter.Listener {
 
@@ -30,7 +32,8 @@ public class ChatActivity extends BaseActivity implements MyChatRecyclerViewAdap
     private RecyclerView mRecyclerView;
     private EditText txtToSend;
     private TextView emptyChat;
-    private TextView tvTitleChat;
+    private Toolbar toolbar;
+    //private TextView tvTitleChat;
     private Button btnSend;
 
     @Override
@@ -44,10 +47,11 @@ public class ChatActivity extends BaseActivity implements MyChatRecyclerViewAdap
         txtToSend = findViewById(R.id.chat_message_edit_text);
         emptyChat = findViewById(R.id.tvEmptyChat);
         btnSend = findViewById(R.id.chat_send_button);
-        tvTitleChat = findViewById(R.id.tvTitleChat);
 
-        Toolbar toolbar = findViewById(R.id.toolbar);
+        toolbar = findViewById(R.id.toolbarChat);
         setSupportActionBar(toolbar);
+        Objects.requireNonNull(getSupportActionBar()).setDisplayHomeAsUpEnabled(true);
+        Objects.requireNonNull(getSupportActionBar()).setDisplayShowHomeEnabled(true);
     }
 
     @Override
@@ -56,7 +60,7 @@ public class ChatActivity extends BaseActivity implements MyChatRecyclerViewAdap
         currentChatToken = getIntent().getStringExtra(getResources().getString(R.string.TOKEN));
         receiver = getIntent().getStringExtra(getResources().getString(R.string.RECEIVER));
         String tmp = getResources().getString(R.string.your_chatting_with) + receiver;
-        tvTitleChat.setText(tmp);
+        Objects.requireNonNull(getSupportActionBar()).setTitle(tmp);
         configureRecyclerView();
         setUpSendBtn();
     }
@@ -117,5 +121,10 @@ public class ChatActivity extends BaseActivity implements MyChatRecyclerViewAdap
     public void onStop() {
         super.onStop();
         mRecyclerViewAdapter.stopListening();
+    }
+
+    @Override
+    public void onBackPressed() {
+        super.onBackPressed();
     }
 }

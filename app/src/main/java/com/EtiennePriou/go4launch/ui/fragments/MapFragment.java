@@ -6,7 +6,9 @@ import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.location.Criteria;
 import android.location.Location;
+import android.location.LocationManager;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
@@ -30,11 +32,11 @@ import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapView;
 import com.google.android.gms.maps.OnMapReadyCallback;
-import com.google.android.gms.maps.model.BitmapDescriptor;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
@@ -59,14 +61,18 @@ import static android.Manifest.permission.ACCESS_FINE_LOCATION;
 public class MapFragment extends Fragment implements OnMapReadyCallback, LocationListener, GoogleMap.OnInfoWindowClickListener {
 
     private static final int REQUEST_ID_ACCESS_COURSE_FINE_LOCATION = 100;
+
     private static MainViewModel mMainViewModel;
+
+    private PlacesApi mPlacesApi;
+
     private GoogleMap mMap;
+    private FusedLocationProviderClient fusedLocationClient;
+    private PlacesClient placesClient;
+
     private View mView;
     private Context mContext;
     private ProgressDialog myProgress;
-    private FusedLocationProviderClient fusedLocationClient;
-    private PlacesApi mPlacesApi;
-    private PlacesClient placesClient;
 
 
     public MapFragment() { }
@@ -84,7 +90,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, Locatio
         super.onCreate(savedInstanceState);
         mContext = getContext();
         mPlacesApi = DI.getServiceApiPlaces();
-        fusedLocationClient = LocationServices.getFusedLocationProviderClient(Objects.requireNonNull(this.getContext()));
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(mContext);
 
         //Configure PlacesClient
         if (mPlacesApi.getPlacesClient() == null){
@@ -130,15 +136,14 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, Locatio
             String[] permissions = new String[]{Manifest.permission.ACCESS_COARSE_LOCATION, ACCESS_FINE_LOCATION};
             // Show a dialog asking the user to allow the above permissions.
             ActivityCompat.requestPermissions(Objects.requireNonNull(getActivity()), permissions, REQUEST_ID_ACCESS_COURSE_FINE_LOCATION);
-            return;
+            requestPermissionLocation();
         }
         mMap.setMyLocationEnabled(true);
-        fusedLocationClient.getLastLocation().addOnSuccessListener(new OnSuccessListener<Location>() {
-            @Override
-            public void onSuccess(Location location) {
-                setNearbyPlaces(location);
-            }
-        });
+        LocationManager locationManager = (LocationManager) mContext.getSystemService(Context.LOCATION_SERVICE);
+        Criteria criteria = new Criteria();
+
+        Location location = locationManager.getLastKnownLocation(locationManager.getBestProvider(criteria, false));
+        setNearbyPlaces(location);
     }
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
@@ -164,7 +169,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, Locatio
     }
 
     private void setNearbyPlaces(Location location) {
-
+        zoomOnMyPos(location);
         if (mPlacesApi.getPlaces() == null){
             mPlacesApi.setLocation(location);
             mMainViewModel.setLocation(location);
@@ -251,9 +256,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, Locatio
                 marker.setTag(placeModel.getId());
             }
         }
-        LatLng latLng = new LatLng(mPlacesApi.getLocation().getLatitude(),mPlacesApi.getLocation().getLongitude());
-        mMap.moveCamera(CameraUpdateFactory.newLatLng(latLng));
-        mMap.animateCamera(CameraUpdateFactory.zoomTo(15));
+        zoomOnMyPos(mPlacesApi.getLocation());
         mMap.setOnInfoWindowClickListener(this);
         myProgress.dismiss();
     }
@@ -271,9 +274,16 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, Locatio
 
     @Override
     public void onLocationChanged(Location location) {
+        zoomOnMyPos(location);
         setNearbyPlaces(location);
     }
 
+    private void zoomOnMyPos (Location location){
+        CameraUpdate center=CameraUpdateFactory.newLatLng(new LatLng(location.getLatitude(), location.getLongitude()));
+        CameraUpdate zoom=CameraUpdateFactory.zoomTo(20);
+        mMap.moveCamera(center);
+        mMap.animateCamera(zoom);
+    }
 
     @Override
     public void onInfoWindowClick(Marker marker) {

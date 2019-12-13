@@ -2,17 +2,15 @@ package com.EtiennePriou.go4launch.ui.details;
 
 import com.EtiennePriou.go4launch.base.BaseActivity;
 import com.EtiennePriou.go4launch.di.DI;
-import com.EtiennePriou.go4launch.di.ViewModelFactory;
 import com.EtiennePriou.go4launch.models.PlaceToGo;
-import com.EtiennePriou.go4launch.models.WhoComing;
 import com.EtiennePriou.go4launch.models.Workmate;
 import com.EtiennePriou.go4launch.services.firebase.helpers.PlaceHelper;
 import com.EtiennePriou.go4launch.services.firebase.helpers.UserHelper;
 import com.EtiennePriou.go4launch.services.places.PlacesApi;
 import com.EtiennePriou.go4launch.services.places.helpers.DetailHelper;
 import com.EtiennePriou.go4launch.ui.fragments.workmates_list.MyWorkmateRecyclerViewAdapter;
-import com.EtiennePriou.go4launch.utils.CheckDate;
 import com.EtiennePriou.go4launch.utils.NoteCalcul;
+import com.firebase.ui.firestore.FirestoreRecyclerOptions;
 import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
@@ -22,7 +20,6 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import androidx.annotation.NonNull;
 import androidx.core.app.ActivityCompat;
-import androidx.lifecycle.ViewModelProviders;
 import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -44,12 +41,10 @@ import android.widget.Toast;
 import com.EtiennePriou.go4launch.R;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QuerySnapshot;
 import com.smarteist.autoimageslider.SliderView;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
 import java.util.Objects;
 
 public class DetailPlaceActivity extends BaseActivity {
@@ -67,10 +62,7 @@ public class DetailPlaceActivity extends BaseActivity {
     private Place mPlaceDetails;
     private String placeRef;
     private Workmate currentUser;
-    private int impToFinish = 0;
-    private List<Workmate> workmateList = new ArrayList<>();
-
-    private DetailsViewModel mDetailsViewModel;
+    private MyWorkmateRecyclerViewAdapter mAdapter;
 
     @Override
     public int getLayoutContentViewID() {
@@ -99,17 +91,14 @@ public class DetailPlaceActivity extends BaseActivity {
         mPlacesApi = DI.getServiceApiPlaces();
         placeRef = getIntent().getStringExtra(getResources().getString(R.string.PLACEREFERENCE));
 
-        configureViewModel();
         getPlaceDetails();
     }
 
-    private void configureViewModel(){
-        ViewModelFactory viewModelFactory = DI.provideViewModelFactory();
-        mDetailsViewModel = ViewModelProviders.of(this, viewModelFactory).get(DetailsViewModel.class);
-    }
-
+    /**
+     * get place detail from GooglePlace
+     */
     private void getPlaceDetails () {
-
+        setUpRecyclerView(PlaceHelper.getUsersToday(placeRef));
         DetailHelper.getDetails(placeRef, mPlacesApi.getPlacesClient()).addOnSuccessListener(new OnSuccessListener<FetchPlaceResponse>() {
             @Override
             public void onSuccess(FetchPlaceResponse response) {
@@ -117,7 +106,6 @@ public class DetailPlaceActivity extends BaseActivity {
                 checkNote();
                 setMiddleBarButtons();
                 setFabButton();
-                checkWorkmateComeHere();
                 updateUi();
             }
         }).addOnFailureListener(new OnFailureListener() {
@@ -130,11 +118,16 @@ public class DetailPlaceActivity extends BaseActivity {
         });
     }
 
+    /**
+     * upDate ui components
+     */
     private void updateUi() {
-        if (mPlaceDetails.getPhotoMetadatas() != null || !mPlaceDetails.getPhotoMetadatas().isEmpty()){
-            mSliderView.setVisibility(View.VISIBLE);
-            mimgDetailsTop.setVisibility(View.GONE);
-            mSliderView.setSliderAdapter(new SliderAdapter(mPlaceDetails.getPhotoMetadatas()));
+        if (mPlaceDetails.getPhotoMetadatas() != null){
+            if (!mPlaceDetails.getPhotoMetadatas().isEmpty()){
+                mSliderView.setVisibility(View.VISIBLE);
+                mimgDetailsTop.setVisibility(View.GONE);
+                mSliderView.setSliderAdapter(new SliderAdapter(mPlaceDetails.getPhotoMetadatas()));
+            }
         }else {
             mSliderView.setVisibility(View.GONE);
             mimgDetailsTop.setVisibility(View.VISIBLE);
@@ -143,6 +136,10 @@ public class DetailPlaceActivity extends BaseActivity {
         mtvPlaceAdresse.setText(mPlaceDetails.getAddress());
     }
 
+    /**
+     * get notesList from server
+     * and update UI
+     */
     private void checkNote(){
         PlaceHelper.getNotes(placeRef).addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
             @Override
@@ -154,9 +151,15 @@ public class DetailPlaceActivity extends BaseActivity {
         });
     }
 
+    /**
+     * set action on button press
+     * CALL Button
+     * RATE Button
+     * WEB Button
+     */
     private void setMiddleBarButtons() {
 
-        /* --- Phone Button --- */
+        /* --- Call Button --- */
         if (mPlaceDetails.getPhoneNumber() == null || mPlaceDetails.getPhoneNumber().isEmpty()){
             mbtnCall.setBackgroundColor(getResources().getColor(R.color.grey));
         }else{
@@ -175,7 +178,7 @@ public class DetailPlaceActivity extends BaseActivity {
             });
         }
 
-        /* --- Note Button --- */
+        /* --- Rate Button --- */
         mbtnLike.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -198,6 +201,9 @@ public class DetailPlaceActivity extends BaseActivity {
         }
     }
 
+    /**
+     * return the note given by actual user for ratting dialBox
+     */
     private void getMyNote(){
         PlaceHelper.getMyNote(placeRef, mFireBaseApi.getCurrentUser().getUid()).addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
             @Override
@@ -210,6 +216,9 @@ public class DetailPlaceActivity extends BaseActivity {
         });
     }
 
+    /**
+     * create the Ratting box with note given if not null
+     */
     private void createDialogBox(int myNote) {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
             LayoutInflater inflater = this.getLayoutInflater();
@@ -243,8 +252,11 @@ public class DetailPlaceActivity extends BaseActivity {
             });
     }
 
+    /**
+     * update note on Server
+     */
     private void sendNote(int note) {
-        PlaceHelper.createFavorite(mFireBaseApi.getCurrentUser().getUid(),placeRef,note).addOnSuccessListener(new OnSuccessListener<Void>() {
+        PlaceHelper.createNote(mFireBaseApi.getCurrentUser().getUid(),placeRef,note).addOnSuccessListener(new OnSuccessListener<Void>() {
             @Override
             public void onSuccess(Void aVoid) {
                 Toast.makeText(DetailPlaceActivity.this, mContext.getString(R.string.the_note_sent), Toast.LENGTH_SHORT).show();
@@ -252,46 +264,32 @@ public class DetailPlaceActivity extends BaseActivity {
         });
     }
 
-
-    private void checkWorkmateComeHere() {
-        PlaceHelper.getWhoComing(placeRef).addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
+    /**
+     * Live Query for users who comming this place
+     */
+    private void setUpRecyclerView (Query query){
+        mAdapter = new MyWorkmateRecyclerViewAdapter(generateOptionsForAdapter(query),0);
+        mAdapter.registerAdapterDataObserver(new RecyclerView.AdapterDataObserver() {
             @Override
-            public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
-                if (!queryDocumentSnapshots.getDocuments().isEmpty()){
-
-                    final int forFinish = queryDocumentSnapshots.size();
-
-                    for (DocumentSnapshot userRef : queryDocumentSnapshots) {
-                        if (!CheckDate.isDatePast(userRef.getDate("dateCreated"))) {
-                        UserHelper.getUser(userRef.getString("uid"))
-                                .addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
-                                    @Override
-                                    public void onSuccess(DocumentSnapshot documentSnapshot) {
-                                        workmateList.add(documentSnapshot.toObject(Workmate.class));
-                                        impToFinish++;
-
-                                        if (impToFinish == forFinish) {
-                                            if (workmateList.isEmpty()) {
-                                                changeUiIfNoWorkmateHere();
-                                            } else {
-                                                setUpRecyclerView(workmateList);
-                                            }
-                                        }
-                                    }
-                                });
-                        }
-                    }
-                }else  changeUiIfNoWorkmateHere();
+            public void onChanged() {
+                mRecyclerView.smoothScrollToPosition(mAdapter.getItemCount());
             }
         });
-    }
-
-    private void setUpRecyclerView (List<Workmate> workmateList){
         mRecyclerView.setLayoutManager(new LinearLayoutManager(this));
         mRecyclerView.addItemDecoration(new DividerItemDecoration(this, DividerItemDecoration.VERTICAL));
-        mRecyclerView.setAdapter(new MyWorkmateRecyclerViewAdapter(workmateList,0));
+        mRecyclerView.setAdapter(this.mAdapter);
+    }
+    //Create options for RecyclerView from a Query
+    private FirestoreRecyclerOptions<Workmate> generateOptionsForAdapter(Query query){
+        return new FirestoreRecyclerOptions
+                .Builder<Workmate>()
+                .setQuery(query,Workmate.class)
+                .build();
     }
 
+    /**
+     * set Fab for modify whoComming
+     */
     private void setFabButton (){
         UserHelper.getUser(Objects.requireNonNull(FirebaseAuth.getInstance().getCurrentUser()).getUid())
                 .addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
@@ -314,52 +312,47 @@ public class DetailPlaceActivity extends BaseActivity {
                             public void onClick(View view) {
 
                                 PlaceToGo placeToGo = new PlaceToGo(mPlaceDetails.getAddress(),mPlaceDetails.getName(),placeRef);
-                                WhoComing whoComing = new WhoComing(currentUser.getUsername(),currentUser.getUid());
 
+                                // If actual user said he wanna come here so we delete him from list
                                 if (currentUser.getPlaceToGo() != null && currentUser.getPlaceToGo().getPlaceRef().equals(placeRef)){
+
+                                    currentUser.setPlaceToGo(null);
 
                                     PlaceHelper.deleteUserWhoComming(currentUser.getUid(),mPlaceDetails.getId());
                                     UserHelper.updatePlaceToGo(currentUser.getUid(),null);
 
-                                    currentUser.setPlaceToGo(null);
-                                    Workmate tmp;
-                                    for (Workmate workmate : workmateList){
-                                        if (workmate.getUid().equals(currentUser.getUid())){
-                                            tmp = workmate;
-                                            workmateList.remove(tmp);
-                                            setUpRecyclerView(workmateList);
-                                            break;
-                                        }
-                                    }
 
                                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                                         fab.getDrawable().setTint(getResources().getColor(R.color.grey));
                                     }
                                     makeToast(getResources().getString(R.string.no_going_there));
 
-                                }else if (currentUser.getPlaceToGo() != null && !currentUser.getPlaceToGo().getPlaceRef().equals(placeRef)){
+                                }
+                                // If actual user said he wanna come to an other place so we delete
+                                // him from the other place list and add him to the new place
+                                else if (currentUser.getPlaceToGo() != null && !currentUser.getPlaceToGo().getPlaceRef().equals(placeRef)){
 
                                     PlaceHelper.deleteUserWhoComming(currentUser.getUid(),currentUser.getPlaceToGo().getPlaceRef());
-                                    PlaceHelper.createWhoComing(mPlaceDetails.getId(), whoComing);
-                                    UserHelper.updatePlaceToGo(currentUser.getUid(),placeToGo);
 
                                     currentUser.setPlaceToGo(placeToGo);
-                                    workmateList.add(currentUser);
-                                    setUpRecyclerView(workmateList);
+                                    currentUser.setDateCreated(null);
+
+                                    PlaceHelper.createWhoComing(mPlaceDetails.getId(), currentUser);
+                                    UserHelper.updatePlaceToGo(currentUser.getUid(),placeToGo);
 
                                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                                         fab.getDrawable().setTint(getResources().getColor(R.color.green));
                                     }
                                     makeToast(getResources().getString(R.string.nice_choice));
 
-                                }else{
-
-                                    PlaceHelper.createWhoComing(mPlaceDetails.getId(), whoComing);
-                                    UserHelper.updatePlaceToGo(currentUser.getUid(),placeToGo);
-
+                                }
+                                //actual user did not choose so we add him to this place
+                                else{
                                     currentUser.setPlaceToGo(placeToGo);
-                                    workmateList.add(currentUser);
-                                    setUpRecyclerView(workmateList);
+                                    currentUser.setDateCreated(null);
+
+                                    PlaceHelper.createWhoComing(mPlaceDetails.getId(), currentUser);
+                                    UserHelper.updatePlaceToGo(currentUser.getUid(),placeToGo);
 
                                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                                         fab.getDrawable().setTint(getResources().getColor(R.color.green));
@@ -383,7 +376,22 @@ public class DetailPlaceActivity extends BaseActivity {
         }
     }
 
+    /**
+     * Toaster
+     */
     private void makeToast(String text){
         Toast.makeText(this, text, Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        mAdapter.startListening();
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        mAdapter.stopListening();
     }
 }

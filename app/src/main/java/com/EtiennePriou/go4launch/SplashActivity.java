@@ -19,6 +19,9 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.EtiennePriou.go4launch.di.DI;
+import com.EtiennePriou.go4launch.models.Workmate;
+import com.EtiennePriou.go4launch.services.firebase.FireBaseApi;
 import com.EtiennePriou.go4launch.services.firebase.helpers.UserHelper;
 import com.EtiennePriou.go4launch.ui.MainActivity;
 import com.EtiennePriou.go4launch.utils.InternetTest;
@@ -94,7 +97,6 @@ public class SplashActivity extends AppCompatActivity {
             // Successfully signed in
             user = Objects.requireNonNull(mAuth.getCurrentUser());
             createUserInFirestore();
-            startMainActivity();
         }
     }
 
@@ -108,8 +110,13 @@ public class SplashActivity extends AppCompatActivity {
                     String urlPicture = (user.getPhotoUrl() != null) ? user.getPhotoUrl().toString() : null;
                     String username = user.getDisplayName();
                     String uid = user.getUid();
-                    UserHelper.createUser(uid, username, urlPicture).addOnFailureListener(onFailureListener());
-                }
+                    Workmate userToCreate = new Workmate(uid, username, urlPicture, null);
+                    FireBaseApi fireBaseApi = DI.getServiceFireBase();
+                    fireBaseApi.setActualUser(userToCreate);
+                    fireBaseApi.setCurrentUser(user);
+                    startMainActivity();
+                    UserHelper.createUser(userToCreate).addOnFailureListener(onFailureListener());
+                }else startMainActivity();
             }
         });
     }
