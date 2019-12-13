@@ -10,12 +10,7 @@ import com.EtiennePriou.go4launch.models.Workmate;
 import com.EtiennePriou.go4launch.services.firebase.helpers.UserHelper;
 import com.EtiennePriou.go4launch.ui.MainViewModel;
 import com.firebase.ui.firestore.FirestoreRecyclerOptions;
-import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.firestore.Query;
-import com.google.firebase.firestore.QuerySnapshot;
-
-import java.util.ArrayList;
-import java.util.List;
 
 
 public class WorkmateFragment extends BaseFragment {

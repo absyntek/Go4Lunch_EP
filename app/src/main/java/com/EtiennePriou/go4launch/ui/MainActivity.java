@@ -256,7 +256,7 @@ public class MainActivity extends BaseActivity implements NavigationView.OnNavig
         if (drawer.isDrawerOpen(GravityCompat.START)) {
             drawer.closeDrawer(GravityCompat.START);
         } else if (mMainViewModel.getWichFrag() == 2 || mMainViewModel.getWichFrag() == 3){
-            showFragment(1);
+            bottomNavigationView.setSelectedItemId(R.id.navigation_map);
         }else {
             super.onBackPressed();
         }

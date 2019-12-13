@@ -181,5 +181,6 @@
     <string name="RECEIVER" translatable="false">receiver</string>
     <string name="your_chatting_with">You\'re chatting with</string>
     <string name="noChoosePlace">You did not choose a place</string>
+    <string name="imagenoView">noView</string>
 
 </resources>

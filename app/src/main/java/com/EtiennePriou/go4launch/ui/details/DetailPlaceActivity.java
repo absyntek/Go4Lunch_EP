@@ -19,6 +19,7 @@ import com.google.android.libraries.places.api.net.FetchPlaceResponse;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.widget.Toolbar;
 import androidx.core.app.ActivityCompat;
 import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -84,6 +85,17 @@ public class DetailPlaceActivity extends BaseActivity {
         mbtnWebsite = findViewById(R.id.btnWebsite);
         mRecyclerView = findViewById(R.id.recyclerviewDetails);
         fab = findViewById(R.id.fab);
+
+        Toolbar toolbar = findViewById(R.id.toolbarDetails);
+        setSupportActionBar(toolbar);
+        Objects.requireNonNull(getSupportActionBar()).setDisplayHomeAsUpEnabled(true);
+        Objects.requireNonNull(getSupportActionBar()).setDisplayShowHomeEnabled(true);
+        toolbar.setNavigationOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                onBackPressed();
+            }
+        });
     }
 
     @Override
@@ -209,7 +221,7 @@ public class DetailPlaceActivity extends BaseActivity {
             @Override
             public void onSuccess(DocumentSnapshot documentSnapshot) {
                 if (documentSnapshot.getDouble("note") != null){
-                    int myNote = documentSnapshot.get("note",Integer.class);
+                    int myNote = documentSnapshot.get("note", Integer.class);
                     createDialogBox(myNote);
                 }else createDialogBox(0);
             }

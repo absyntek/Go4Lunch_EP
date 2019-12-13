@@ -1,20 +1,42 @@
-<LinearLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical">
+    android:theme="@style/AppTheme"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context=".ui.SettingsActivity">
+
+    <com.google.android.material.appbar.AppBarLayout
+        android:id="@+id/appbarrSetting"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:theme="@style/AppTheme.AppBarOverlay">
+
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/toolbarSetting"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:background="?attr/colorPrimary"
+        app:title="@string/menu_setting"
+        app:popupTheme="@style/AppTheme.PopupOverlay" />
+
+    </com.google.android.material.appbar.AppBarLayout>
+
+
 
     <FrameLayout
         android:id="@+id/settings"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content" />
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/appbarrSetting"  />
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_marginStart="86dp"
         android:layout_marginTop="16dp"
-        android:orientation="vertical">
+        android:orientation="vertical"
+        android:layout_below="@+id/settings">
 
         <LinearLayout
             android:id="@+id/ll_userName"
@@ -46,4 +68,4 @@
             android:textStyle="bold" />
 
     </LinearLayout>
-</LinearLayout>
+</RelativeLayout>

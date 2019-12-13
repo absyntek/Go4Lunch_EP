@@ -7,15 +7,6 @@ import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.Query;
-import com.google.firebase.firestore.QuerySnapshot;
-
-import java.text.DateFormat;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.time.LocalDate;
-import java.util.Date;
-import java.util.Locale;
-import java.util.Map;
 
 public class UserHelper {
 
@@ -35,10 +26,6 @@ public class UserHelper {
 
     // --- GET ---
 
-    public static Task<QuerySnapshot> getUserList(){
-        return UserHelper.getUsersCollection().get();
-    }
-
     public static Query getUsers(){
         return getUsersCollection().orderBy("username", Query.Direction.ASCENDING);
     }
@@ -57,8 +44,8 @@ public class UserHelper {
         return UserHelper.getUsersCollection().document(uid).update("username", username);
     }
 
-    public static Task<Void> updatePlaceToGo(String uid, PlaceToGo placeToGo) {
-        return UserHelper.getUsersCollection().document(uid).update("placeToGo", placeToGo);
+    public static void updatePlaceToGo(String uid, PlaceToGo placeToGo) {
+        UserHelper.getUsersCollection().document(uid).update("placeToGo", placeToGo);
     }
 
     // --- DELETE ---

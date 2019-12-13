@@ -52,4 +52,5 @@
     <string name="type_usr_name">Entrer votre nom d\'utilisateur pour valider</string>
     <string name="your_chatting_with">"Vous dialoguer avec "</string>
     <string name="noChoosePlace">Vous n\'avez pas choisi de restaurant</string>
+    <string name="imagenoView">noView</string>
 </resources>

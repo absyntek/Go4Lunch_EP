@@ -14,8 +14,10 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.RestrictTo;
 import androidx.appcompat.app.ActionBar;
+import androidx.appcompat.widget.Toolbar;
 import androidx.preference.ListPreference;
 import androidx.preference.PreferenceFragmentCompat;
+import androidx.preference.SwitchPreferenceCompat;
 
 import com.EtiennePriou.go4launch.R;
 import com.EtiennePriou.go4launch.SplashActivity;
@@ -38,11 +40,13 @@ import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.iid.FirebaseInstanceId;
 
 import java.io.IOException;
+import java.util.Objects;
 
 public class SettingsActivity extends BaseActivity {
 
     TextView mDeleteAccount,mShowUserName;
     LinearLayout mUserName;
+    Toolbar toolbar;
 
     FireBaseApi mFireBaseApi;
 
@@ -59,11 +63,8 @@ public class SettingsActivity extends BaseActivity {
                 .beginTransaction()
                 .replace(R.id.settings, new SettingsFragment())
                 .commit();
-        ActionBar actionBar = getSupportActionBar();
-        if (actionBar != null) {
-            actionBar.setDisplayHomeAsUpEnabled(true);
-        }
 
+        toolbar = findViewById(R.id.toolbarSetting);
         mDeleteAccount = findViewById(R.id.tvDeleteAccount);
         mShowUserName = findViewById(R.id.tv_showUserName);
         mUserName = findViewById(R.id.ll_userName);
@@ -72,12 +73,23 @@ public class SettingsActivity extends BaseActivity {
     @Override
     protected void withOnCreate() {
 
+        setSupportActionBar(toolbar);
+        Objects.requireNonNull(getSupportActionBar()).setDisplayHomeAsUpEnabled(true);
+        Objects.requireNonNull(getSupportActionBar()).setDisplayShowHomeEnabled(true);
+        toolbar.setNavigationOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                onBackPressed();
+            }
+        });
+
         mFireBaseApi = DI.getServiceFireBase();
 
         setUpUserNameButton();
         setUpDeleteButton();
     }
 
+    // --- Change userName ---
     private void setUpUserNameButton() {
         mShowUserName.setText(mFireBaseApi.getActualUser().getUsername());
         mUserName.setOnClickListener(new View.OnClickListener() {
@@ -87,7 +99,6 @@ public class SettingsActivity extends BaseActivity {
             }
         });
     }
-
     private void createUserNameDialBox(){
         final AlertDialog alertDialog;
         android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(this);
@@ -139,6 +150,7 @@ public class SettingsActivity extends BaseActivity {
         });
     }
 
+    // --- Delete UserAccount ---
     private void setUpDeleteButton() {
         mDeleteAccount.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -147,7 +159,6 @@ public class SettingsActivity extends BaseActivity {
             }
         });
     }
-
     private void createDeleteDialBox(){
         android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(this);
         LayoutInflater inflater = this.getLayoutInflater();
@@ -181,63 +192,48 @@ public class SettingsActivity extends BaseActivity {
             }
         });
     }
-
-    public static class SettingsFragment extends PreferenceFragmentCompat {
-
-        ListPreference languageList;
-
-        @Override
-        public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
-
-            setPreferencesFromResource(R.xml.root_preferences, rootKey);
-            languageList = findPreference("language");
-        }
-    }
-
     private void deleteInformations (){
         UserHelper.getUser(mFireBaseApi.getCurrentUser().getUid())
                 .addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
-            @Override
-            public void onSuccess(DocumentSnapshot documentSnapshot) {
-                PlaceToGo placeToGo = documentSnapshot.get("placeToGo",PlaceToGo.class);
-                if (placeToGo != null){
-                    deleteMyPositionPlace(placeToGo.getPlaceRef());
-                }else {
-                    deleteUserFromFireStore();
-                }
-            }
-        });
+                    @Override
+                    public void onSuccess(DocumentSnapshot documentSnapshot) {
+                        PlaceToGo placeToGo = documentSnapshot.get("placeToGo",PlaceToGo.class);
+                        if (placeToGo != null){
+                            deleteMyPositionPlace(placeToGo.getPlaceRef());
+                        }else {
+                            deleteUserFromFireStore();
+                        }
+                    }
+                });
     }
-
     private void deleteMyPositionPlace(String placeRef) {
         PlaceHelper.deleteUserWhoComming(mFireBaseApi.getCurrentUser().getUid(),placeRef)
                 .addOnSuccessListener(new OnSuccessListener<Void>() {
-            @Override
-            public void onSuccess(Void aVoid) {
-                deleteUserFromFireStore();
-            }
-        });
+                    @Override
+                    public void onSuccess(Void aVoid) {
+                        deleteUserFromFireStore();
+                    }
+                });
     }
-
     private void deleteUserFromFireStore (){
         UserHelper.deleteUser(mFireBaseApi.getCurrentUser().getUid())
                 .addOnSuccessListener(new OnSuccessListener<Void>() {
-            @Override
-            public void onSuccess(Void aVoid) {
-                FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
-                user.delete()
-                        .addOnCompleteListener(new OnCompleteListener<Void>() {
-                            @Override
-                            public void onComplete(@NonNull Task<Void> task) {
-                                if (task.isSuccessful()) {
-                                    FirebaseAuth.getInstance().signOut();
-                                    Toast.makeText(SettingsActivity.this, "Your Account has been deleted", Toast.LENGTH_SHORT).show();
-                                    finishOnDelete();
-                                }
-                            }
-                        });
-            }
-        }).addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onSuccess(Void aVoid) {
+                        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+                        user.delete()
+                                .addOnCompleteListener(new OnCompleteListener<Void>() {
+                                    @Override
+                                    public void onComplete(@NonNull Task<Void> task) {
+                                        if (task.isSuccessful()) {
+                                            FirebaseAuth.getInstance().signOut();
+                                            Toast.makeText(SettingsActivity.this, "Your Account has been deleted", Toast.LENGTH_SHORT).show();
+                                            finishOnDelete();
+                                        }
+                                    }
+                                });
+                    }
+                }).addOnFailureListener(new OnFailureListener() {
             @Override
             public void onFailure(@NonNull Exception e) {
                 Toast.makeText(SettingsActivity.this, "Sorry, an error occurred", Toast.LENGTH_SHORT).show();
@@ -252,5 +248,18 @@ public class SettingsActivity extends BaseActivity {
         splash.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
         splash.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
         startActivity(splash);
+    }
+
+    public static class SettingsFragment extends PreferenceFragmentCompat {
+
+        SwitchPreferenceCompat mPreferenceCompat;
+        private String NOTIF = "notification";
+
+        @Override
+        public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
+
+            setPreferencesFromResource(R.xml.root_preferences, rootKey);
+            if (findPreference(NOTIF) != null) mPreferenceCompat = findPreference(NOTIF);
+        }
     }
 }

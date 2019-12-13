@@ -51,6 +51,13 @@
                 app:sliderIndicatorUnselectedColor="#FFF"
                 app:sliderStartAutoCycle="false" />
 
+            <androidx.appcompat.widget.Toolbar
+                android:id="@+id/toolbarDetails"
+                android:layout_width="match_parent"
+                android:layout_height="?attr/actionBarSize"
+                android:background="@color/fui_transparent"
+                app:popupTheme="@style/AppTheme.PopupOverlay" />
+
         </com.google.android.material.appbar.CollapsingToolbarLayout>
     </com.google.android.material.appbar.AppBarLayout>
 

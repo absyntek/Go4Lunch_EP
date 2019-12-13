@@ -66,7 +66,7 @@ public class MyWorkmateRecyclerViewAdapter extends FirestoreRecyclerAdapter<Work
                 holder.itemView.setVisibility(View.GONE);
                 holder.itemView.setLayoutParams(new RecyclerView.LayoutParams(0, 0));
             }else {
-                holder.itemView.setVisibility(View.VISIBLE);//TODO how to reject this
+                holder.itemView.setVisibility(View.VISIBLE);
             }
             String whereIsGoing;
             if (workmate.getPlaceToGo() != null && !CheckDate.isDatePast(workmate.getPlaceToGo().getDateCreated()))

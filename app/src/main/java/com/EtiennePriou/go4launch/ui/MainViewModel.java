@@ -5,12 +5,6 @@ import android.location.Location;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
-import com.google.android.gms.maps.model.LatLng;
-
-import java.math.RoundingMode;
-import java.text.DecimalFormat;
-
-
 public class MainViewModel extends ViewModel {
 
 
@@ -22,27 +16,25 @@ public class MainViewModel extends ViewModel {
         mLocation = null;
     }
 
-    public int getWichFrag() {
+    // --- GETTERS ---
+    int getWichFrag() {
         return wichFrag;
     }
-
-    public void setWichFrag(int wichFrag) {
-        this.wichFrag = wichFrag;
+    public Location getLocation() {
+        return mLocation;
     }
-
     public MutableLiveData<String> getWorkmateSearch() {
         return currentName;
     }
 
+    // --- SETTERS ---
+    void setWichFrag(int wichFrag) {
+        this.wichFrag = wichFrag;
+    }
     void setCurrentName(String currentName) {
         this.currentName.setValue(currentName);
     }
-
     public void setLocation(Location location) {
         mLocation = location;
-    }
-
-    public Location getLocation() {
-        return mLocation;
     }
 }
